@@ -27,12 +27,13 @@ const createVehicleIcon = (isMoving: boolean) => {
   });
 };
 
-// Map recenter component
+// Map recenter component - fix to ensure proper use of context consumer
 const MapRecenter = ({ position }: { position: LatLngExpression }) => {
+  // We need to use useMap() safely inside the component body
   const map = useMap();
   
   useEffect(() => {
-    if (position) {
+    if (position && map) {
       map.setView(position, map.getZoom());
     }
   }, [position, map]);
@@ -78,7 +79,7 @@ export function TrackingMap({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       
-      {/* Recenter map when position changes */}
+      {/* Recenter map when position changes - fixed to properly use context consumer */}
       <MapRecenter position={position} />
       
       {/* Vehicle marker */}
