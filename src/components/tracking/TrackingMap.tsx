@@ -46,7 +46,7 @@ type PathPoint = {
 };
 
 interface TrackingMapProps {
-  position?: LatLngExpression; // Changed from [number, number] to LatLngExpression
+  position?: LatLngExpression;
   vehicle?: any;
   isMoving?: boolean;
   showPath?: boolean;
@@ -65,6 +65,9 @@ export function TrackingMap({
   
   // Create path coordinates for polyline if pathData exists
   const pathCoordinates = pathData.map(point => point.position);
+  
+  // Added a state variable to ensure component rendering is controlled by React
+  const [isMapReady, setIsMapReady] = useState(true);
   
   return (
     <MapContainer
