@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
-import { Icon, LatLng, LatLngExpression } from "leaflet";
+import { Icon, LatLngExpression } from "leaflet";
 import { Car } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -40,10 +40,10 @@ const MapRecenter = ({ position }: { position: LatLngExpression }) => {
   return null;
 };
 
-type PathPoint = {
+interface PathPoint {
   position: [number, number];
   timestamp: string;
-};
+}
 
 interface TrackingMapProps {
   position?: LatLngExpression;
@@ -65,9 +65,6 @@ export function TrackingMap({
   
   // Create path coordinates for polyline if pathData exists
   const pathCoordinates = pathData.map(point => point.position);
-  
-  // Added a state variable to ensure component rendering is controlled by React
-  const [isMapReady, setIsMapReady] = useState(true);
   
   return (
     <MapContainer

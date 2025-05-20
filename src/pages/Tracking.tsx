@@ -7,7 +7,6 @@ import { VehicleDetails } from "@/components/tracking/VehicleDetails";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useVehicleTracking } from "@/hooks/useVehicleTracking";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import "leaflet/dist/leaflet.css";
 
 const Tracking = () => {
@@ -61,26 +60,22 @@ const Tracking = () => {
           <CardContent className="p-0">
             <TabsContent value="live" className="m-0">
               <div className="h-[600px] relative">
-                <TooltipProvider>
-                  <TrackingMap 
-                    position={currentPosition}
-                    vehicle={selectedVehicle}
-                    isMoving={isMoving}
-                  />
-                </TooltipProvider>
+                <TrackingMap 
+                  position={currentPosition}
+                  vehicle={selectedVehicle}
+                  isMoving={isMoving}
+                />
               </div>
             </TabsContent>
             <TabsContent value="history" className="m-0">
               <div className="h-[600px] relative">
-                <TooltipProvider>
-                  <TrackingMap 
-                    position={currentPosition}
-                    vehicle={selectedVehicle}
-                    isMoving={false}
-                    showPath={true}
-                    pathData={vehicleHistory}
-                  />
-                </TooltipProvider>
+                <TrackingMap 
+                  position={currentPosition}
+                  vehicle={selectedVehicle}
+                  isMoving={false}
+                  showPath={true}
+                  pathData={vehicleHistory}
+                />
               </div>
             </TabsContent>
           </CardContent>
