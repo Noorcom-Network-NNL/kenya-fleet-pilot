@@ -6,8 +6,6 @@ import { VehicleSelector } from "@/components/tracking/VehicleSelector";
 import { VehicleDetails } from "@/components/tracking/VehicleDetails";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
 import { useVehicleTracking } from "@/hooks/useVehicleTracking";
 import "leaflet/dist/leaflet.css";
 

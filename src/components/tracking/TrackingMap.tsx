@@ -46,7 +46,7 @@ type PathPoint = {
 };
 
 interface TrackingMapProps {
-  position?: [number, number];
+  position?: LatLngExpression; // Changed from [number, number] to LatLngExpression
   vehicle?: any;
   isMoving?: boolean;
   showPath?: boolean;

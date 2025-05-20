@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useCallback } from "react";
+import { LatLngExpression } from "leaflet";
 
 // Demo vehicle data
 const demoVehicles = [
@@ -57,7 +58,7 @@ const demoVehicles = [
 
 // Nairobi area coordinates for demo
 const nairobiCoords = {
-  center: [-1.2921, 36.8219], // Nairobi City Center
+  center: [-1.2921, 36.8219] as [number, number], // Nairobi City Center
   radius: 0.05, // Roughly 5km radius
 };
 
@@ -91,7 +92,7 @@ const generatePathHistory = (count: number) => {
 
 export function useVehicleTracking() {
   const [selectedVehicle, setSelectedVehicle] = useState<any | null>(null);
-  const [currentPosition, setCurrentPosition] = useState<[number, number]>([-1.2921, 36.8219]);
+  const [currentPosition, setCurrentPosition] = useState<LatLngExpression>([-1.2921, 36.8219]);
   const [vehicleHistory, setVehicleHistory] = useState<any[]>([]);
   const [isMoving, setIsMoving] = useState(false);
   const [currentSpeed, setCurrentSpeed] = useState(0);
@@ -128,9 +129,12 @@ export function useVehicleTracking() {
     const interval = setInterval(() => {
       // Move the vehicle slightly in a random direction
       setCurrentPosition(prev => {
-        const latChange = (Math.random() - 0.5) * 0.001;
-        const lngChange = (Math.random() - 0.5) * 0.001;
-        return [prev[0] + latChange, prev[1] + lngChange];
+        if (Array.isArray(prev)) {
+          const latChange = (Math.random() - 0.5) * 0.001;
+          const lngChange = (Math.random() - 0.5) * 0.001;
+          return [prev[0] + latChange, prev[1] + lngChange] as [number, number];
+        }
+        return prev; // Return unchanged if not an array
       });
       
       // Randomly vary the speed a bit
@@ -147,7 +151,7 @@ export function useVehicleTracking() {
         setVehicleHistory(prev => [
           ...prev,
           {
-            position: currentPosition,
+            position: Array.isArray(currentPosition) ? currentPosition : [currentPosition.lat, currentPosition.lng],
             timestamp: new Date().toISOString()
           }
         ]);
