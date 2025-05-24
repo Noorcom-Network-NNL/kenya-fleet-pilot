@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -13,9 +12,10 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Search, Filter, Loader2, MapPin, Navigation } from "lucide-react";
+import { Plus, Search, Filter, Loader2, MapPin, Navigation, Eye } from "lucide-react";
 import { useFirebaseTrips } from "@/hooks/useFirebaseTrips";
 import { AddTripForm } from "@/components/trips/AddTripForm";
+import { RealTimeTracker } from "@/components/tracking/RealTimeTracker";
 
 const getStatusBadge = (status: string) => {
   switch (status) {
@@ -48,6 +48,13 @@ const getPurposeBadge = (purpose: string) => {
 const Tracking = () => {
   const { tripRecords, loading, error } = useFirebaseTrips();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedTrip, setSelectedTrip] = useState<any | null>(null);
+  const [isTrackingDialogOpen, setIsTrackingDialogOpen] = useState(false);
+
+  const handleViewTrip = (trip: any) => {
+    setSelectedTrip(trip);
+    setIsTrackingDialogOpen(true);
+  };
 
   if (error) {
     return (
@@ -80,6 +87,18 @@ const Tracking = () => {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Real-time Tracking Dialog */}
+      <Dialog open={isTrackingDialogOpen} onOpenChange={setIsTrackingDialogOpen}>
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
+          {selectedTrip && (
+            <RealTimeTracker 
+              tripRecord={selectedTrip} 
+              onClose={() => setIsTrackingDialogOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       <div className="bg-white rounded-lg shadow-sm mb-6">
         <div className="p-4 border-b flex flex-col sm:flex-row justify-between gap-4">
@@ -151,7 +170,15 @@ const Tracking = () => {
                       {trip.distance ? `${trip.distance} km` : '-'}
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm">View</Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleViewTrip(trip)}
+                        className="flex items-center gap-1"
+                      >
+                        <Eye className="h-3 w-3" />
+                        Track Live
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
