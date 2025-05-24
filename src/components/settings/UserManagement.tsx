@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { User, UserPlus, Edit, Trash2, Shield, Eye, Loader2 } from 'lucide-react';
 import { useFirebaseUsers } from '@/hooks/useFirebaseUsers';
+import { AddUserForm } from './AddUserForm';
 
 export function UserManagement() {
   const { users, loading, deleteUser } = useFirebaseUsers();
+  const [showAddDialog, setShowAddDialog] = useState(false);
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -40,10 +43,15 @@ export function UserManagement() {
           <h3 className="text-lg font-medium">User Management</h3>
           <p className="text-sm text-gray-500">Manage users and their access permissions</p>
         </div>
-        <Button className="flex items-center gap-2">
-          <UserPlus className="h-4 w-4" />
-          Add New User
-        </Button>
+        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-2">
+              <UserPlus className="h-4 w-4" />
+              Add New User
+            </Button>
+          </DialogTrigger>
+          <AddUserForm onClose={() => setShowAddDialog(false)} />
+        </Dialog>
       </div>
 
       <Card>
