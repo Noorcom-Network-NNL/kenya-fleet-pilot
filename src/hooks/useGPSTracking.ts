@@ -61,9 +61,20 @@ export function useGPSTracking(vehicleId?: string) {
   // Initialize connection on mount
   useEffect(() => {
     console.log('Initializing GPS tracking service connection');
-    // Connect to GPS tracking server
-    gpsTrackingService.connect();
-    setIsConnected(true);
+    
+    // Check if GPS tracking is enabled in settings
+    const settings = localStorage.getItem('integrationSettings');
+    const integrationSettings = settings ? JSON.parse(settings) : { gpsTrackingEnabled: true };
+    
+    if (integrationSettings.gpsTrackingEnabled) {
+      // Connect to GPS tracking server using saved endpoint
+      const endpoint = integrationSettings.gpsEndpoint || 'wss://api.gpstrack.demo/v1/websocket';
+      gpsTrackingService.connect(endpoint);
+      setIsConnected(true);
+    } else {
+      console.log('GPS tracking disabled in settings');
+      setIsConnected(false);
+    }
 
     return () => {
       console.log('Cleaning up GPS tracking service connection');
