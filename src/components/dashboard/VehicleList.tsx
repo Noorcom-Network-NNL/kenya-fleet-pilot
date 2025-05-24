@@ -41,9 +41,39 @@ const getStatusBadge = (status: Vehicle["status"]) => {
   }
 };
 
+const formatFirebaseDate = (date: any): string => {
+  if (!date) return 'N/A';
+  
+  try {
+    // Handle Firestore Timestamp
+    if (date && typeof date.toDate === 'function') {
+      return formatDistanceToNow(date.toDate(), { addSuffix: true });
+    }
+    // Handle JavaScript Date
+    if (date instanceof Date) {
+      return formatDistanceToNow(date, { addSuffix: true });
+    }
+    // Handle timestamp number
+    if (typeof date === 'number') {
+      return formatDistanceToNow(new Date(date), { addSuffix: true });
+    }
+    // Handle date string
+    if (typeof date === 'string') {
+      const parsedDate = new Date(date);
+      if (!isNaN(parsedDate.getTime())) {
+        return formatDistanceToNow(parsedDate, { addSuffix: true });
+      }
+    }
+    return 'N/A';
+  } catch (error) {
+    console.warn('Error formatting date:', error);
+    return 'N/A';
+  }
+};
+
 export function VehicleList({ vehicles, loading }: VehicleListProps) {
   // Show only the most recent 5 vehicles
-  const recentVehicles = vehicles.slice(0, 5);
+  const recentVehicles = vehicles?.slice(0, 5) || [];
 
   return (
     <Card>
@@ -97,7 +127,7 @@ export function VehicleList({ vehicles, loading }: VehicleListProps) {
                       </div>
                     </td>
                     <td className="py-3 text-sm text-gray-500">
-                      {vehicle.updatedAt ? formatDistanceToNow(vehicle.updatedAt, { addSuffix: true }) : 'N/A'}
+                      {formatFirebaseDate(vehicle.updatedAt)}
                     </td>
                   </tr>
                 ))}

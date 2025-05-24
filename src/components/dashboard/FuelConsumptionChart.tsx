@@ -33,18 +33,36 @@ export function FuelConsumptionChart({ fuelRecords }: FuelConsumptionChartProps)
   }
 
   // Calculate consumption per month
-  fuelRecords.forEach(record => {
-    const recordDate = new Date(record.date);
-    const monthData = last6Months.find(month => 
-      month.month === recordDate.getMonth() && 
-      month.year === recordDate.getFullYear()
-    );
-    if (monthData) {
-      monthData.consumption += record.fuelAmount;
+  (fuelRecords || []).forEach(record => {
+    try {
+      let recordDate;
+      
+      // Handle different date formats from Firebase
+      if (record.date && typeof record.date.toDate === 'function') {
+        recordDate = record.date.toDate();
+      } else if (record.date instanceof Date) {
+        recordDate = record.date;
+      } else if (typeof record.date === 'string') {
+        recordDate = new Date(record.date);
+      } else if (typeof record.date === 'number') {
+        recordDate = new Date(record.date);
+      } else {
+        return; // Skip invalid dates
+      }
+
+      const monthData = last6Months.find(month => 
+        month.month === recordDate.getMonth() && 
+        month.year === recordDate.getFullYear()
+      );
+      if (monthData && record.fuelAmount) {
+        monthData.consumption += record.fuelAmount;
+      }
+    } catch (error) {
+      console.warn('Error processing fuel record date:', error);
     }
   });
 
-  if (fuelRecords.length === 0) {
+  if (!fuelRecords || fuelRecords.length === 0) {
     return (
       <Card>
         <CardHeader>

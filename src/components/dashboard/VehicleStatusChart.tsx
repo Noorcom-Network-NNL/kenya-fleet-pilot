@@ -12,7 +12,7 @@ interface VehicleStatusChartProps {
 
 export function VehicleStatusChart({ vehicles }: VehicleStatusChartProps) {
   // Calculate status counts from real data
-  const statusCounts = vehicles.reduce((acc, vehicle) => {
+  const statusCounts = (vehicles || []).reduce((acc, vehicle) => {
     acc[vehicle.status] = (acc[vehicle.status] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
@@ -24,7 +24,7 @@ export function VehicleStatusChart({ vehicles }: VehicleStatusChartProps) {
     { name: "Issues", value: statusCounts.issue || 0 },
   ].filter(item => item.value > 0); // Only show statuses that have vehicles
 
-  if (vehicles.length === 0) {
+  if (!vehicles || vehicles.length === 0) {
     return (
       <Card>
         <CardHeader>

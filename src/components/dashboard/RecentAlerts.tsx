@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bell, Fuel, Car, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Vehicle } from "@/hooks/useFirebaseVehicles";
-import { formatDistanceToNow } from "date-fns";
 
 interface RecentAlertsProps {
   vehicles: Vehicle[];
@@ -31,11 +30,35 @@ const getAlertIcon = (type: Alert["type"]) => {
   }
 };
 
+const formatFirebaseDate = (date: any): string => {
+  if (!date) return 'Recently';
+  
+  try {
+    // Handle Firestore Timestamp
+    if (date && typeof date.toDate === 'function') {
+      const jsDate = date.toDate();
+      return `${Math.floor((Date.now() - jsDate.getTime()) / (1000 * 60))} min ago`;
+    }
+    // Handle JavaScript Date
+    if (date instanceof Date) {
+      return `${Math.floor((Date.now() - date.getTime()) / (1000 * 60))} min ago`;
+    }
+    // Handle timestamp number
+    if (typeof date === 'number') {
+      return `${Math.floor((Date.now() - date) / (1000 * 60))} min ago`;
+    }
+    return 'Recently';
+  } catch (error) {
+    console.warn('Error formatting date:', error);
+    return 'Recently';
+  }
+};
+
 export function RecentAlerts({ vehicles }: RecentAlertsProps) {
   // Generate alerts based on real vehicle data
   const alerts: Alert[] = [];
 
-  vehicles.forEach(vehicle => {
+  vehicles?.forEach(vehicle => {
     // Low fuel alert
     if (vehicle.fuelLevel < 30) {
       alerts.push({
@@ -43,7 +66,7 @@ export function RecentAlerts({ vehicles }: RecentAlertsProps) {
         type: "fuel",
         vehicle: vehicle.regNumber,
         message: `Low fuel level: ${vehicle.fuelLevel}%`,
-        time: vehicle.updatedAt ? formatDistanceToNow(vehicle.updatedAt, { addSuffix: true }) : 'Recently'
+        time: formatFirebaseDate(vehicle.updatedAt)
       });
     }
 
@@ -54,7 +77,7 @@ export function RecentAlerts({ vehicles }: RecentAlertsProps) {
         type: "maintenance",
         vehicle: vehicle.regNumber,
         message: "Vehicle in maintenance",
-        time: vehicle.updatedAt ? formatDistanceToNow(vehicle.updatedAt, { addSuffix: true }) : 'Recently'
+        time: formatFirebaseDate(vehicle.updatedAt)
       });
     }
 
@@ -65,7 +88,7 @@ export function RecentAlerts({ vehicles }: RecentAlertsProps) {
         type: "speeding",
         vehicle: vehicle.regNumber,
         message: "Vehicle has reported issues",
-        time: vehicle.updatedAt ? formatDistanceToNow(vehicle.updatedAt, { addSuffix: true }) : 'Recently'
+        time: formatFirebaseDate(vehicle.updatedAt)
       });
     }
   });
