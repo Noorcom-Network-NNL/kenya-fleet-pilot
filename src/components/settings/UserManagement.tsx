@@ -1,46 +1,13 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { User, UserPlus, Edit, Trash2, Shield, Eye } from 'lucide-react';
+import { User, UserPlus, Edit, Trash2, Shield, Eye, Loader2 } from 'lucide-react';
+import { useFirebaseUsers } from '@/hooks/useFirebaseUsers';
 
 export function UserManagement() {
-  const users = [
-    {
-      id: 1,
-      name: "John Kamau",
-      email: "john@noorcomfleet.co.ke",
-      role: "Fleet Admin",
-      status: "active",
-      lastLogin: "2 hours ago"
-    },
-    {
-      id: 2,
-      name: "Sarah Wanjiku",
-      email: "sarah@noorcomfleet.co.ke", 
-      role: "Fleet Manager",
-      status: "active",
-      lastLogin: "1 day ago"
-    },
-    {
-      id: 3,
-      name: "David Kariuki",
-      email: "david@noorcomfleet.co.ke",
-      role: "Driver",
-      status: "active",
-      lastLogin: "3 hours ago"
-    },
-    {
-      id: 4,
-      name: "Mary Akinyi",
-      email: "mary@noorcomfleet.co.ke",
-      role: "Viewer",
-      status: "inactive",
-      lastLogin: "1 week ago"
-    }
-  ];
+  const { users, loading, deleteUser } = useFirebaseUsers();
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -51,6 +18,20 @@ export function UserManagement() {
       default: return "bg-gray-100 text-gray-800";
     }
   };
+
+  const handleDeleteUser = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      await deleteUser(id);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -69,47 +50,60 @@ export function UserManagement() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            Active Users
+            Users ({users.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {users.map((user) => (
-              <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarFallback>
-                      {user.name.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium">{user.name}</p>
-                      <Badge className={getRoleColor(user.role)}>
-                        {user.role}
-                      </Badge>
-                      <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
-                        {user.status}
-                      </Badge>
+          {users.length === 0 ? (
+            <div className="text-center py-8">
+              <User className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-500">No users found</p>
+              <p className="text-sm text-gray-400">Add your first user to get started</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {users.map((user) => (
+                <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarFallback>
+                        {user.name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{user.name}</p>
+                        <Badge className={getRoleColor(user.role)}>
+                          {user.role}
+                        </Badge>
+                        <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
+                          {user.status}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-500">{user.email}</p>
+                      <p className="text-xs text-gray-400">Last login: {user.lastLogin}</p>
                     </div>
-                    <p className="text-sm text-gray-500">{user.email}</p>
-                    <p className="text-xs text-gray-400">Last login: {user.lastLogin}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-red-600 hover:text-red-700"
+                      onClick={() => handleDeleteUser(user.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm">
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
