@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -23,7 +22,7 @@ export function GeneralSettings() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="company-email">Company Email</Label>
-              <Input id="company-email" type="email" defaultValue="admin@noorcom.co.ke" />
+              <Input id="company-email" type="email" defaultValue="admin@noorcomfleet.co.ke" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="company-phone">Phone Number</Label>

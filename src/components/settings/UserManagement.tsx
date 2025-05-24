@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,7 @@ export function UserManagement() {
     {
       id: 1,
       name: "John Kamau",
-      email: "john@noorcom.co.ke",
+      email: "john@noorcomfleet.co.ke",
       role: "Fleet Admin",
       status: "active",
       lastLogin: "2 hours ago"
@@ -19,7 +18,7 @@ export function UserManagement() {
     {
       id: 2,
       name: "Sarah Wanjiku",
-      email: "sarah@noorcom.co.ke", 
+      email: "sarah@noorcomfleet.co.ke", 
       role: "Fleet Manager",
       status: "active",
       lastLogin: "1 day ago"
@@ -27,7 +26,7 @@ export function UserManagement() {
     {
       id: 3,
       name: "David Kariuki",
-      email: "david@noorcom.co.ke",
+      email: "david@noorcomfleet.co.ke",
       role: "Driver",
       status: "active",
       lastLogin: "3 hours ago"
@@ -35,7 +34,7 @@ export function UserManagement() {
     {
       id: 4,
       name: "Mary Akinyi",
-      email: "mary@noorcom.co.ke",
+      email: "mary@noorcomfleet.co.ke",
       role: "Viewer",
       status: "inactive",
       lastLogin: "1 week ago"
