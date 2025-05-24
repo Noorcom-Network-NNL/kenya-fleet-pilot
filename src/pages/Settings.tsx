@@ -3,6 +3,10 @@ import React from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GeneralSettings } from "@/components/settings/GeneralSettings";
+import { NotificationSettings } from "@/components/settings/NotificationSettings";
+import { UserManagement } from "@/components/settings/UserManagement";
+import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
 
 const Settings = () => {
   return (
@@ -20,36 +24,16 @@ const Settings = () => {
               <TabsTrigger value="integrations">Integrations</TabsTrigger>
             </TabsList>
             <TabsContent value="general">
-              <div className="min-h-[400px]">
-                <h3 className="text-lg font-medium mb-4">General Settings</h3>
-                <p className="text-gray-500">
-                  Configure general system settings and preferences.
-                </p>
-              </div>
+              <GeneralSettings />
             </TabsContent>
             <TabsContent value="notifications">
-              <div className="min-h-[400px]">
-                <h3 className="text-lg font-medium mb-4">Notification Settings</h3>
-                <p className="text-gray-500">
-                  Configure how and when you receive notifications.
-                </p>
-              </div>
+              <NotificationSettings />
             </TabsContent>
             <TabsContent value="users">
-              <div className="min-h-[400px]">
-                <h3 className="text-lg font-medium mb-4">User Management</h3>
-                <p className="text-gray-500">
-                  Add, edit, and manage users and their permissions.
-                </p>
-              </div>
+              <UserManagement />
             </TabsContent>
             <TabsContent value="integrations">
-              <div className="min-h-[400px]">
-                <h3 className="text-lg font-medium mb-4">Integrations</h3>
-                <p className="text-gray-500">
-                  Connect with third-party services and APIs.
-                </p>
-              </div>
+              <IntegrationSettings />
             </TabsContent>
           </Tabs>
         </CardContent>
