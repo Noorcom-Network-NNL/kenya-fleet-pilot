@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,61 +12,11 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, Search, Filter } from "lucide-react";
-
-const driverData = [
-  { 
-    id: 1, 
-    name: "John Mwangi",
-    phone: "+254 712 345678",
-    license: "D123456789", 
-    licenseExpiry: "15 Dec 2023",
-    status: "active",
-    performance: "excellent",
-    assignedVehicle: "KBZ 123A"
-  },
-  { 
-    id: 2, 
-    name: "Sarah Wanjiku",
-    phone: "+254 723 456789",
-    license: "D987654321", 
-    licenseExpiry: "23 Mar 2024",
-    status: "inactive",
-    performance: "good",
-    assignedVehicle: "KCY 456B"
-  },
-  { 
-    id: 3, 
-    name: "David Kariuki",
-    phone: "+254 734 567890",
-    license: "D456789123", 
-    licenseExpiry: "08 Jul 2024",
-    status: "active",
-    performance: "excellent",
-    assignedVehicle: "KDA 789C"
-  },
-  { 
-    id: 4, 
-    name: "Mary Akinyi",
-    phone: "+254 745 678901",
-    license: "D234567891", 
-    licenseExpiry: "30 May 2024",
-    status: "active",
-    performance: "average",
-    assignedVehicle: "KBD 321D"
-  },
-  { 
-    id: 5, 
-    name: "Peter Omondi",
-    phone: "+254 756 789012",
-    license: "D345678912", 
-    licenseExpiry: "01 Apr 2023",
-    status: "inactive",
-    performance: "poor",
-    assignedVehicle: "-"
-  },
-];
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Plus, Search, Filter, Loader2, Users } from "lucide-react";
+import { useFirebaseDrivers } from "@/hooks/useFirebaseDrivers";
+import { AddDriverForm } from "@/components/drivers/AddDriverForm";
 
 const getStatusBadge = (status: string) => {
   switch (status) {
@@ -95,6 +45,22 @@ const getPerformanceBadge = (performance: string) => {
 };
 
 const Drivers = () => {
+  const { drivers, loading, error } = useFirebaseDrivers();
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+  if (error) {
+    return (
+      <MainLayout title="Driver Management">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">Error loading drivers: {error}</p>
+            <p className="text-gray-500">Please check your Firebase configuration</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
   return (
     <MainLayout title="Driver Management">
       <div className="flex items-center justify-between mb-6">
@@ -102,9 +68,16 @@ const Drivers = () => {
           <h2 className="text-lg font-medium">All Drivers</h2>
           <p className="text-sm text-gray-500">Manage and monitor your fleet drivers</p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> Add Driver
-        </Button>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" /> Add Driver
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <AddDriverForm onSuccess={() => setIsAddDialogOpen(false)} />
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm mb-6">
@@ -122,49 +95,64 @@ const Drivers = () => {
           </Button>
         </div>
 
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Driver</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>License</TableHead>
-                <TableHead>License Expiry</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Performance</TableHead>
-                <TableHead>Assigned Vehicle</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {driverData.map((driver) => (
-                <TableRow key={driver.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-noorcom-100 text-noorcom-600">
-                          {driver.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="font-medium">{driver.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{driver.phone}</TableCell>
-                  <TableCell>{driver.license}</TableCell>
-                  <TableCell className={new Date(driver.licenseExpiry) < new Date() ? "text-red-600" : ""}>
-                    {driver.licenseExpiry}
-                  </TableCell>
-                  <TableCell>{getStatusBadge(driver.status)}</TableCell>
-                  <TableCell>{getPerformanceBadge(driver.performance)}</TableCell>
-                  <TableCell>{driver.assignedVehicle}</TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="sm">View</Button>
-                  </TableCell>
+        {loading ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <span className="ml-2">Loading drivers...</span>
+          </div>
+        ) : drivers.length === 0 ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 mb-2">No drivers found</p>
+              <p className="text-gray-500 text-sm">Add your first driver to get started</p>
+            </div>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Driver</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>License</TableHead>
+                  <TableHead>License Expiry</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Performance</TableHead>
+                  <TableHead>Assigned Vehicle</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {drivers.map((driver) => (
+                  <TableRow key={driver.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="bg-noorcom-100 text-noorcom-600">
+                            {driver.name.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="font-medium">{driver.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{driver.phone}</TableCell>
+                    <TableCell>{driver.license}</TableCell>
+                    <TableCell className={new Date(driver.licenseExpiry) < new Date() ? "text-red-600" : ""}>
+                      {driver.licenseExpiry}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(driver.status)}</TableCell>
+                    <TableCell>{getPerformanceBadge(driver.performance)}</TableCell>
+                    <TableCell>{driver.assignedVehicle || "-"}</TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="sm">View</Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </div>
     </MainLayout>
   );
