@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { TrackingMap } from './TrackingMap';
+import { GoogleMap } from './GoogleMap';
 import { MapPin, Play, Pause } from 'lucide-react';
 
 interface PathPoint {
@@ -39,7 +39,7 @@ export function MapCard({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <MapPin className="h-5 w-5" />
-            Live Map (Demo)
+            Live Map (Google Maps)
           </CardTitle>
           <div className="flex items-center gap-2">
             <Button
@@ -65,7 +65,7 @@ export function MapCard({
       </CardHeader>
       <CardContent>
         <div className="h-96 rounded-lg overflow-hidden">
-          <TrackingMap
+          <GoogleMap
             position={currentPosition}
             vehicle={{
               regNumber: tripRecord.vehicleRegNumber,
