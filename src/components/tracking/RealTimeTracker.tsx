@@ -27,6 +27,10 @@ interface RealTimeTrackerProps {
 
 export function RealTimeTracker({ tripRecord, onClose }: RealTimeTrackerProps) {
   const [showPath, setShowPath] = useState(true);
+  
+  // Generate device ID based on trip record
+  const deviceId = `FMB920_${tripRecord.vehicleId || tripRecord.id}`;
+  
   const { 
     gpsData, 
     isConnected, 
@@ -45,10 +49,29 @@ export function RealTimeTracker({ tripRecord, onClose }: RealTimeTrackerProps) {
   }));
 
   const handleStartTracking = () => {
-    // In a real implementation, you'd get the device ID from the vehicle record
-    const deviceId = `FMB920_${tripRecord.vehicleId}`;
+    console.log('Starting GPS tracking for device:', deviceId);
     startTracking(deviceId);
   };
+
+  const handleStopTracking = () => {
+    console.log('Stopping GPS tracking for device:', deviceId);
+    stopTracking();
+  };
+
+  // Auto-start tracking when component mounts
+  useEffect(() => {
+    if (isConnected && !isTracking) {
+      console.log('Auto-starting GPS tracking on component mount');
+      handleStartTracking();
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (isTracking) {
+        handleStopTracking();
+      }
+    };
+  }, [isConnected]);
 
   return (
     <div className="space-y-6">
@@ -58,10 +81,14 @@ export function RealTimeTracker({ tripRecord, onClose }: RealTimeTrackerProps) {
           <p className="text-sm text-gray-600">
             Vehicle: {tripRecord.vehicleRegNumber} | Driver: {tripRecord.driverName}
           </p>
+          <p className="text-xs text-gray-500">Device ID: {deviceId}</p>
         </div>
         <div className="flex items-center gap-2">
           <Badge className={isConnected ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
             {isConnected ? "Connected" : "Disconnected"}
+          </Badge>
+          <Badge className={isTracking ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"}>
+            {isTracking ? "Tracking" : "Stopped"}
           </Badge>
           <Button variant="outline" onClick={onClose}>
             Close
@@ -94,7 +121,7 @@ export function RealTimeTracker({ tripRecord, onClose }: RealTimeTrackerProps) {
                     Show Path
                   </Button>
                   {isTracking ? (
-                    <Button size="sm" onClick={stopTracking} className="bg-red-600 hover:bg-red-700">
+                    <Button size="sm" onClick={handleStopTracking} className="bg-red-600 hover:bg-red-700">
                       <Pause className="h-4 w-4 mr-1" />
                       Stop
                     </Button>
@@ -207,6 +234,11 @@ export function RealTimeTracker({ tripRecord, onClose }: RealTimeTrackerProps) {
                   <p className="text-sm text-gray-500">
                     {isTracking ? "Waiting for GPS data..." : "Start tracking to view data"}
                   </p>
+                  {isConnected && !isTracking && (
+                    <Button size="sm" onClick={handleStartTracking} className="mt-2">
+                      Start GPS Tracking
+                    </Button>
+                  )}
                 </div>
               )}
             </CardContent>

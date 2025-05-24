@@ -36,9 +36,11 @@ class GPSTrackingService {
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
   private subscribers: Map<string, (data: GPSData) => void> = new Map();
+  private simulationIntervals: Map<string, NodeJS.Timeout> = new Map();
 
   // Connect to GPS tracking server (you'll need to replace with actual server URL)
   connect(serverUrl: string = 'ws://localhost:8080/gps-tracking') {
+    console.log('Attempting to connect to GPS tracking server:', serverUrl);
     try {
       this.wsConnection = new WebSocket(serverUrl);
       
@@ -50,6 +52,7 @@ class GPSTrackingService {
       this.wsConnection.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+          console.log('Received GPS data from server:', data);
           this.handleGPSData(data);
         } catch (error) {
           console.error('Error parsing GPS data:', error);
@@ -66,6 +69,7 @@ class GPSTrackingService {
       };
     } catch (error) {
       console.error('Failed to connect to GPS tracking server:', error);
+      console.log('Falling back to simulation mode');
     }
   }
 
@@ -76,6 +80,8 @@ class GPSTrackingService {
         console.log(`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
         this.connect(serverUrl);
       }, this.reconnectDelay * this.reconnectAttempts);
+    } else {
+      console.log('Max reconnection attempts reached, staying in simulation mode');
     }
   }
 
@@ -97,15 +103,21 @@ class GPSTrackingService {
       fuelLevel: rawData.ioElements?.fuelLevel,
     };
 
+    console.log('Processed GPS data:', gpsData);
+
     // Notify all subscribers for this device
     const callback = this.subscribers.get(gpsData.deviceId);
     if (callback) {
+      console.log('Sending GPS data to subscriber for device:', gpsData.deviceId);
       callback(gpsData);
+    } else {
+      console.log('No subscriber found for device:', gpsData.deviceId);
     }
   }
 
   // Subscribe to GPS updates for a specific device
   subscribeToDevice(deviceId: string, callback: (data: GPSData) => void) {
+    console.log('Subscribing to GPS updates for device:', deviceId);
     this.subscribers.set(deviceId, callback);
     
     // Send subscription message to server
@@ -114,12 +126,24 @@ class GPSTrackingService {
         action: 'subscribe',
         deviceId: deviceId
       }));
+      console.log('Sent subscription message to server for device:', deviceId);
+    } else {
+      console.log('WebSocket not connected, subscription will be handled by simulation');
     }
   }
 
   // Unsubscribe from GPS updates for a specific device
   unsubscribeFromDevice(deviceId: string) {
+    console.log('Unsubscribing from GPS updates for device:', deviceId);
     this.subscribers.delete(deviceId);
+    
+    // Stop simulation if running
+    const interval = this.simulationIntervals.get(deviceId);
+    if (interval) {
+      clearInterval(interval);
+      this.simulationIntervals.delete(deviceId);
+      console.log('Stopped simulation for device:', deviceId);
+    }
     
     if (this.wsConnection && this.wsConnection.readyState === WebSocket.OPEN) {
       this.wsConnection.send(JSON.stringify({
@@ -148,6 +172,14 @@ class GPSTrackingService {
 
   // Simulate GPS data for demo purposes (remove in production)
   simulateGPSData(deviceId: string) {
+    console.log('Starting GPS simulation for device:', deviceId);
+    
+    // Clear any existing simulation for this device
+    const existingInterval = this.simulationIntervals.get(deviceId);
+    if (existingInterval) {
+      clearInterval(existingInterval);
+    }
+
     const nairobiCenter = [-1.2921, 36.8219];
     let currentLat = nairobiCenter[0];
     let currentLng = nairobiCenter[1];
@@ -173,20 +205,36 @@ class GPSTrackingService {
         fuelLevel: Math.floor(Math.random() * 100)
       };
       
+      console.log('Generated simulated GPS data:', gpsData);
+      
       const callback = this.subscribers.get(deviceId);
       if (callback) {
         callback(gpsData);
       }
     }, 2000);
     
-    return () => clearInterval(interval);
+    this.simulationIntervals.set(deviceId, interval);
+    
+    return () => {
+      console.log('Cleaning up simulation for device:', deviceId);
+      clearInterval(interval);
+      this.simulationIntervals.delete(deviceId);
+    };
   }
 
   disconnect() {
+    console.log('Disconnecting GPS tracking service');
     if (this.wsConnection) {
       this.wsConnection.close();
       this.wsConnection = null;
     }
+    
+    // Clear all simulations
+    this.simulationIntervals.forEach((interval) => {
+      clearInterval(interval);
+    });
+    this.simulationIntervals.clear();
+    
     this.subscribers.clear();
   }
 }
