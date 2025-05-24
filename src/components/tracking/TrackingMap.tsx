@@ -27,9 +27,8 @@ const createVehicleIcon = (isMoving: boolean) => {
   });
 };
 
-// Map recenter component - fix to ensure proper use of context consumer
+// Fixed MapRecenter component
 const MapRecenter = ({ position }: { position: LatLngExpression }) => {
-  // We need to use useMap() safely inside the component body
   const map = useMap();
   
   useEffect(() => {
@@ -79,7 +78,7 @@ export function TrackingMap({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       
-      {/* Recenter map when position changes - fixed to properly use context consumer */}
+      {/* Fixed MapRecenter component */}
       <MapRecenter position={position} />
       
       {/* Vehicle marker */}
