@@ -38,8 +38,8 @@ export function FuelConsumptionChart({ fuelRecords }: FuelConsumptionChartProps)
       let recordDate;
       
       // Handle different date formats from Firebase
-      if (record.date && typeof record.date.toDate === 'function') {
-        recordDate = record.date.toDate();
+      if (record.date && typeof record.date === 'object' && 'toDate' in record.date) {
+        recordDate = (record.date as any).toDate();
       } else if (record.date instanceof Date) {
         recordDate = record.date;
       } else if (typeof record.date === 'string') {
