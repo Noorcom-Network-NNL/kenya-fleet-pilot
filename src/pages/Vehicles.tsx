@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,70 +12,10 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Car, Plus, Search, Filter } from "lucide-react";
-
-const vehicleData = [
-  { 
-    id: 1, 
-    regNumber: "KBZ 123A", 
-    make: "Toyota", 
-    model: "Hilux", 
-    year: 2021, 
-    status: "active",
-    insurance: "Valid until 15 Dec 2023",
-    nextService: "10,000 km (2,000 remaining)" 
-  },
-  { 
-    id: 2, 
-    regNumber: "KCY 456B", 
-    make: "Isuzu", 
-    model: "D-Max", 
-    year: 2020, 
-    status: "maintenance",
-    insurance: "Valid until 23 Mar 2024",
-    nextService: "Due now" 
-  },
-  { 
-    id: 3, 
-    regNumber: "KDA 789C", 
-    make: "Mitsubishi", 
-    model: "Pajero", 
-    year: 2022, 
-    status: "active",
-    insurance: "Valid until 08 Jul 2024",
-    nextService: "15,000 km (4,500 remaining)" 
-  },
-  { 
-    id: 4, 
-    regNumber: "KBD 321D", 
-    make: "Nissan", 
-    model: "Navara", 
-    year: 2019, 
-    status: "idle",
-    insurance: "Valid until 30 May 2024",
-    nextService: "12,000 km (1,200 remaining)" 
-  },
-  { 
-    id: 5, 
-    regNumber: "KCA 654E", 
-    make: "Toyota", 
-    model: "Land Cruiser", 
-    year: 2018, 
-    status: "issue",
-    insurance: "Expired on 01 Apr 2023",
-    nextService: "Due now" 
-  },
-  { 
-    id: 6, 
-    regNumber: "KDL 987F", 
-    make: "Ford", 
-    model: "Ranger", 
-    year: 2021, 
-    status: "active",
-    insurance: "Valid until 12 Nov 2023",
-    nextService: "20,000 km (8,500 remaining)" 
-  },
-];
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Car, Plus, Search, Filter, Loader2 } from "lucide-react";
+import { useFirebaseVehicles } from "@/hooks/useFirebaseVehicles";
+import { AddVehicleForm } from "@/components/vehicles/AddVehicleForm";
 
 const getStatusBadge = (status: string) => {
   switch (status) {
@@ -93,6 +33,22 @@ const getStatusBadge = (status: string) => {
 };
 
 const Vehicles = () => {
+  const { vehicles, loading, error } = useFirebaseVehicles();
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+  if (error) {
+    return (
+      <MainLayout title="Vehicle Management">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">Error loading vehicles: {error}</p>
+            <p className="text-gray-500">Please check your Firebase configuration</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
   return (
     <MainLayout title="Vehicle Management">
       <div className="flex items-center justify-between mb-6">
@@ -100,9 +56,16 @@ const Vehicles = () => {
           <h2 className="text-lg font-medium">All Vehicles</h2>
           <p className="text-sm text-gray-500">Manage and monitor your fleet vehicles</p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> Add Vehicle
-        </Button>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" /> Add Vehicle
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl">
+            <AddVehicleForm onSuccess={() => setIsAddDialogOpen(false)} />
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm mb-6">
@@ -120,47 +83,64 @@ const Vehicles = () => {
           </Button>
         </div>
 
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Registration</TableHead>
-                <TableHead>Make & Model</TableHead>
-                <TableHead>Year</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Insurance</TableHead>
-                <TableHead>Next Service</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {vehicleData.map((vehicle) => (
-                <TableRow key={vehicle.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      <div className="bg-noorcom-100 rounded-md p-1">
-                        <Car className="h-4 w-4 text-noorcom-600" />
-                      </div>
-                      {vehicle.regNumber}
-                    </div>
-                  </TableCell>
-                  <TableCell>{vehicle.make} {vehicle.model}</TableCell>
-                  <TableCell>{vehicle.year}</TableCell>
-                  <TableCell>{getStatusBadge(vehicle.status)}</TableCell>
-                  <TableCell className={vehicle.insurance.includes("Expired") ? "text-red-600" : ""}>
-                    {vehicle.insurance}
-                  </TableCell>
-                  <TableCell className={vehicle.nextService.includes("Due") ? "text-red-600" : ""}>
-                    {vehicle.nextService}
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="sm">View</Button>
-                  </TableCell>
+        {loading ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <Loader2 className="h-8 w-8 animate-spin" />
+            <span className="ml-2">Loading vehicles...</span>
+          </div>
+        ) : vehicles.length === 0 ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 mb-2">No vehicles found</p>
+              <p className="text-gray-500 text-sm">Add your first vehicle to get started</p>
+            </div>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Registration</TableHead>
+                  <TableHead>Make & Model</TableHead>
+                  <TableHead>Year</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Driver</TableHead>
+                  <TableHead>Insurance</TableHead>
+                  <TableHead>Next Service</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {vehicles.map((vehicle) => (
+                  <TableRow key={vehicle.id}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <div className="bg-noorcom-100 rounded-md p-1">
+                          <Car className="h-4 w-4 text-noorcom-600" />
+                        </div>
+                        {vehicle.regNumber}
+                      </div>
+                    </TableCell>
+                    <TableCell>{vehicle.make} {vehicle.model}</TableCell>
+                    <TableCell>{vehicle.year}</TableCell>
+                    <TableCell>{getStatusBadge(vehicle.status)}</TableCell>
+                    <TableCell>{vehicle.driver}</TableCell>
+                    <TableCell className={vehicle.insurance.includes("Expired") ? "text-red-600" : ""}>
+                      {vehicle.insurance || "Not specified"}
+                    </TableCell>
+                    <TableCell className={vehicle.nextService.includes("Due") ? "text-red-600" : ""}>
+                      {vehicle.nextService || "Not specified"}
+                    </TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="sm">View</Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </div>
     </MainLayout>
   );
