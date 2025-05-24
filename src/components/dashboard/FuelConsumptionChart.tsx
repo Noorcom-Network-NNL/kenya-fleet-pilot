@@ -10,17 +10,55 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { FuelRecord } from "@/hooks/useFirebaseFuel";
 
-const data = [
-  { name: "Jan", consumption: 350 },
-  { name: "Feb", consumption: 300 },
-  { name: "Mar", consumption: 420 },
-  { name: "Apr", consumption: 380 },
-  { name: "May", consumption: 410 },
-  { name: "Jun", consumption: 390 },
-];
+interface FuelConsumptionChartProps {
+  fuelRecords: FuelRecord[];
+}
 
-export function FuelConsumptionChart() {
+export function FuelConsumptionChart({ fuelRecords }: FuelConsumptionChartProps) {
+  // Group fuel records by month for the last 6 months
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const now = new Date();
+  const last6Months = [];
+  
+  for (let i = 5; i >= 0; i--) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    last6Months.push({
+      month: date.getMonth(),
+      year: date.getFullYear(),
+      name: monthNames[date.getMonth()],
+      consumption: 0
+    });
+  }
+
+  // Calculate consumption per month
+  fuelRecords.forEach(record => {
+    const recordDate = new Date(record.date);
+    const monthData = last6Months.find(month => 
+      month.month === recordDate.getMonth() && 
+      month.year === recordDate.getFullYear()
+    );
+    if (monthData) {
+      monthData.consumption += record.fuelAmount;
+    }
+  });
+
+  if (fuelRecords.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Fuel Consumption (Liters)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[250px] flex items-center justify-center text-gray-500">
+            No fuel data available
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -29,7 +67,7 @@ export function FuelConsumptionChart() {
       <CardContent>
         <div className="h-[250px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data}>
+            <BarChart data={last6Months}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />

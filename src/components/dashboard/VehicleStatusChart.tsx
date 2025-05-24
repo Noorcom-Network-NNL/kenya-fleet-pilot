@@ -2,17 +2,43 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from "recharts";
-
-const data = [
-  { name: "Active", value: 24 },
-  { name: "Maintenance", value: 5 },
-  { name: "Idle", value: 3 },
-  { name: "Issues", value: 2 },
-];
+import { Vehicle } from "@/hooks/useFirebaseVehicles";
 
 const COLORS = ["#9b87f5", "#22c55e", "#eab308", "#ef4444"];
 
-export function VehicleStatusChart() {
+interface VehicleStatusChartProps {
+  vehicles: Vehicle[];
+}
+
+export function VehicleStatusChart({ vehicles }: VehicleStatusChartProps) {
+  // Calculate status counts from real data
+  const statusCounts = vehicles.reduce((acc, vehicle) => {
+    acc[vehicle.status] = (acc[vehicle.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const data = [
+    { name: "Active", value: statusCounts.active || 0 },
+    { name: "Maintenance", value: statusCounts.maintenance || 0 },
+    { name: "Idle", value: statusCounts.idle || 0 },
+    { name: "Issues", value: statusCounts.issue || 0 },
+  ].filter(item => item.value > 0); // Only show statuses that have vehicles
+
+  if (vehicles.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Vehicle Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[250px] flex items-center justify-center text-gray-500">
+            No vehicles data available
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>

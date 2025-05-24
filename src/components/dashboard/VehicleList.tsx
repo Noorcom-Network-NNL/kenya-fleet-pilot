@@ -4,58 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Car, Check, AlertTriangle, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Vehicle } from "@/hooks/useFirebaseVehicles";
+import { formatDistanceToNow } from "date-fns";
 
-type Vehicle = {
-  id: number;
-  regNumber: string;
-  driver: string;
-  status: "active" | "maintenance" | "idle" | "issue";
-  lastUpdated: string;
-  fuelLevel: number;
-};
-
-const vehicles: Vehicle[] = [
-  {
-    id: 1,
-    regNumber: "KBZ 123A",
-    driver: "John Mwangi",
-    status: "active",
-    lastUpdated: "5 min ago",
-    fuelLevel: 75,
-  },
-  {
-    id: 2,
-    regNumber: "KCY 456B",
-    driver: "Sarah Wanjiku",
-    status: "maintenance",
-    lastUpdated: "2 hours ago",
-    fuelLevel: 45,
-  },
-  {
-    id: 3,
-    regNumber: "KDA 789C",
-    driver: "David Kariuki",
-    status: "active",
-    lastUpdated: "10 min ago",
-    fuelLevel: 90,
-  },
-  {
-    id: 4,
-    regNumber: "KBD 321D",
-    driver: "Mary Akinyi",
-    status: "idle",
-    lastUpdated: "1 hour ago",
-    fuelLevel: 60,
-  },
-  {
-    id: 5,
-    regNumber: "KCA 654E",
-    driver: "Peter Omondi",
-    status: "issue",
-    lastUpdated: "30 min ago",
-    fuelLevel: 20,
-  },
-];
+interface VehicleListProps {
+  vehicles: Vehicle[];
+  loading: boolean;
+}
 
 const getStatusBadge = (status: Vehicle["status"]) => {
   switch (status) {
@@ -86,55 +41,70 @@ const getStatusBadge = (status: Vehicle["status"]) => {
   }
 };
 
-export function VehicleList() {
+export function VehicleList({ vehicles, loading }: VehicleListProps) {
+  // Show only the most recent 5 vehicles
+  const recentVehicles = vehicles.slice(0, 5);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Recent Vehicles</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left text-sm font-medium text-gray-500 pb-2">Reg. Number</th>
-                <th className="text-left text-sm font-medium text-gray-500 pb-2">Driver</th>
-                <th className="text-left text-sm font-medium text-gray-500 pb-2">Status</th>
-                <th className="text-left text-sm font-medium text-gray-500 pb-2">Fuel</th>
-                <th className="text-left text-sm font-medium text-gray-500 pb-2">Last Updated</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vehicles.map((vehicle) => (
-                <tr key={vehicle.id} className="border-b last:border-0">
-                  <td className="py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="bg-noorcom-100 rounded-md p-1">
-                        <Car className="h-4 w-4 text-noorcom-600" />
-                      </div>
-                      <span className="font-medium">{vehicle.regNumber}</span>
-                    </div>
-                  </td>
-                  <td className="py-3 text-sm">{vehicle.driver}</td>
-                  <td className="py-3 text-sm">{getStatusBadge(vehicle.status)}</td>
-                  <td className="py-3">
-                    <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div
-                        className={cn(
-                          "h-full rounded-full",
-                          vehicle.fuelLevel > 70 ? "bg-green-500" : 
-                          vehicle.fuelLevel > 30 ? "bg-amber-500" : "bg-red-500"
-                        )}
-                        style={{ width: `${vehicle.fuelLevel}%` }}
-                      ></div>
-                    </div>
-                  </td>
-                  <td className="py-3 text-sm text-gray-500">{vehicle.lastUpdated}</td>
+        {loading ? (
+          <div className="flex items-center justify-center h-32">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-noorcom-600"></div>
+          </div>
+        ) : recentVehicles.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            No vehicles found. Add your first vehicle to get started.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left text-sm font-medium text-gray-500 pb-2">Reg. Number</th>
+                  <th className="text-left text-sm font-medium text-gray-500 pb-2">Driver</th>
+                  <th className="text-left text-sm font-medium text-gray-500 pb-2">Status</th>
+                  <th className="text-left text-sm font-medium text-gray-500 pb-2">Fuel</th>
+                  <th className="text-left text-sm font-medium text-gray-500 pb-2">Last Updated</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {recentVehicles.map((vehicle) => (
+                  <tr key={vehicle.id} className="border-b last:border-0">
+                    <td className="py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="bg-noorcom-100 rounded-md p-1">
+                          <Car className="h-4 w-4 text-noorcom-600" />
+                        </div>
+                        <span className="font-medium">{vehicle.regNumber}</span>
+                      </div>
+                    </td>
+                    <td className="py-3 text-sm">{vehicle.driver}</td>
+                    <td className="py-3 text-sm">{getStatusBadge(vehicle.status)}</td>
+                    <td className="py-3">
+                      <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className={cn(
+                            "h-full rounded-full",
+                            vehicle.fuelLevel > 70 ? "bg-green-500" : 
+                            vehicle.fuelLevel > 30 ? "bg-amber-500" : "bg-red-500"
+                          )}
+                          style={{ width: `${vehicle.fuelLevel}%` }}
+                        ></div>
+                      </div>
+                    </td>
+                    <td className="py-3 text-sm text-gray-500">
+                      {vehicle.updatedAt ? formatDistanceToNow(vehicle.updatedAt, { addSuffix: true }) : 'N/A'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
