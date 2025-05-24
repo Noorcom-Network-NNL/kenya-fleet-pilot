@@ -4,14 +4,13 @@ import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 // Your web app's Firebase configuration
-// You'll need to replace these with your actual Firebase project config
 const firebaseConfig = {
-  apiKey: "your-api-key-here",
-  authDomain: "your-project.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "your-app-id"
+  apiKey: "AIzaSyCysXSy6Agwqk7QBBEqDbhypVb9AnXpOAg",
+  authDomain: "fleet-management-app-7a80c.firebaseapp.com",
+  projectId: "fleet-management-app-7a80c",
+  storageBucket: "fleet-management-app-7a80c.firebasestorage.app",
+  messagingSenderId: "804545213333",
+  appId: "1:804545213333:web:763ea83a6c7337d8e37c9c"
 };
 
 // Initialize Firebase
