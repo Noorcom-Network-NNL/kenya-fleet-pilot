@@ -39,7 +39,7 @@ export function RealTimeTracker({ tripRecord, onClose }: RealTimeTrackerProps) {
     error,
     startTracking,
     stopTracking 
-  } = useGPSTracking();
+  } = useGPSTracking(deviceId); // Pass device ID to the hook
 
   // Convert GPS data to map format
   const currentPosition = gpsData ? [gpsData.latitude, gpsData.longitude] as [number, number] : undefined;
@@ -58,20 +58,14 @@ export function RealTimeTracker({ tripRecord, onClose }: RealTimeTrackerProps) {
     stopTracking();
   };
 
-  // Auto-start tracking when component mounts
+  // Cleanup on unmount
   useEffect(() => {
-    if (isConnected && !isTracking) {
-      console.log('Auto-starting GPS tracking on component mount');
-      handleStartTracking();
-    }
-
-    // Cleanup on unmount
     return () => {
       if (isTracking) {
         handleStopTracking();
       }
     };
-  }, [isConnected]);
+  }, []);
 
   return (
     <div className="space-y-6">
