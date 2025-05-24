@@ -65,9 +65,15 @@ export const AddTripForm: React.FC<AddTripFormProps> = ({ onSuccess }) => {
       }
 
       await addTripRecord({
-        ...data,
-        vehicleRegNumber: selectedVehicle.registrationNumber,
-        driverName: `${selectedDriver.firstName} ${selectedDriver.lastName}`,
+        vehicleId: data.vehicleId,
+        driverId: data.driverId,
+        startLocation: data.startLocation,
+        endLocation: data.endLocation,
+        startMileage: data.startMileage,
+        purpose: data.purpose,
+        notes: data.notes || "",
+        vehicleRegNumber: selectedVehicle.regNumber,
+        driverName: selectedDriver.name,
         startTime: new Date(),
         status: 'ongoing'
       });
@@ -115,7 +121,7 @@ export const AddTripForm: React.FC<AddTripFormProps> = ({ onSuccess }) => {
                     <SelectContent>
                       {vehicles.map((vehicle) => (
                         <SelectItem key={vehicle.id} value={vehicle.id || ""}>
-                          {vehicle.registrationNumber} - {vehicle.make} {vehicle.model}
+                          {vehicle.regNumber} - {vehicle.make} {vehicle.model}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -140,7 +146,7 @@ export const AddTripForm: React.FC<AddTripFormProps> = ({ onSuccess }) => {
                     <SelectContent>
                       {drivers.map((driver) => (
                         <SelectItem key={driver.id} value={driver.id || ""}>
-                          {driver.firstName} {driver.lastName}
+                          {driver.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
