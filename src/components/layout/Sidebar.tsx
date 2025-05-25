@@ -8,8 +8,11 @@ import {
   MapPin,
   ChartBar,
   Settings,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 
 type NavItemProps = {
   to: string;
@@ -35,6 +38,7 @@ const NavItem = ({ to, icon, label, active }: NavItemProps) => (
 
 export function Sidebar() {
   const location = useLocation();
+  const { logout, currentUser } = useAuth();
   
   const navItems = [
     { to: "/", icon: <ChartBar size={18} />, label: "Dashboard" },
@@ -44,6 +48,14 @@ export function Sidebar() {
     { to: "/tracking", icon: <MapPin size={18} />, label: "Tracking" },
     { to: "/settings", icon: <Settings size={18} />, label: "Settings" },
   ];
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen w-64 bg-noorcom-800 text-white flex flex-col border-r border-noorcom-700">
@@ -72,15 +84,26 @@ export function Sidebar() {
       </nav>
       
       <div className="p-4 border-t border-noorcom-700">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 mb-3">
           <div className="w-8 h-8 rounded-full bg-noorcom-500 flex items-center justify-center">
             <User size={16} />
           </div>
-          <div>
-            <p className="text-sm font-medium">John Kamau</p>
+          <div className="flex-1">
+            <p className="text-sm font-medium truncate">
+              {currentUser?.email || "User"}
+            </p>
             <p className="text-xs text-gray-400">Fleet Admin</p>
           </div>
         </div>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleLogout}
+          className="w-full justify-start text-gray-300 hover:text-white hover:bg-noorcom-700/50"
+        >
+          <LogOut size={16} className="mr-2" />
+          Logout
+        </Button>
       </div>
     </div>
   );
