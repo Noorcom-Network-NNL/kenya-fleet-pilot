@@ -57,10 +57,10 @@ export function FuelRecordsTable({ fuelRecords }: FuelRecordsTableProps) {
                   {record.fuelAmount.toFixed(1)}L
                 </Badge>
               </TableCell>
-              <TableCell>${record.pricePerLiter.toFixed(2)}</TableCell>
+              <TableCell>KES {record.pricePerLiter.toFixed(2)}</TableCell>
               <TableCell>
                 <span className="font-medium text-green-600">
-                  ${record.fuelCost.toFixed(2)}
+                  KES {record.fuelCost.toFixed(2)}
                 </span>
               </TableCell>
               <TableCell>{record.odometer.toLocaleString()} km</TableCell>

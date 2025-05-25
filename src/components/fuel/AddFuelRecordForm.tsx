@@ -132,7 +132,7 @@ export function AddFuelRecordForm() {
         </div>
 
         <div>
-          <Label htmlFor="pricePerLiter">Price per Liter</Label>
+          <Label htmlFor="pricePerLiter">Price per Liter (KES)</Label>
           <Input
             type="number"
             step="0.01"

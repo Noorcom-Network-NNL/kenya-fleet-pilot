@@ -58,7 +58,7 @@ const Fuel = () => {
                   <div className="bg-purple-50 p-4 rounded-lg">
                     <h3 className="font-semibold text-purple-900">Total Cost</h3>
                     <p className="text-2xl font-bold text-purple-600">
-                      ${fuelRecords.reduce((sum, record) => sum + (record.fuelCost || 0), 0).toFixed(2)}
+                      KES {fuelRecords.reduce((sum, record) => sum + (record.fuelCost || 0), 0).toFixed(2)}
                     </p>
                   </div>
                 </div>
