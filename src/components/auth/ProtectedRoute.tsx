@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
@@ -10,6 +10,9 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { currentUser, loading } = useAuth();
+  const location = useLocation();
+
+  console.log('ProtectedRoute - loading:', loading, 'currentUser:', currentUser);
 
   if (loading) {
     return (
@@ -20,8 +23,10 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!currentUser) {
-    return <Navigate to="/login" replace />;
+    console.log('No user, redirecting to login');
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  console.log('User authenticated, rendering children');
   return <>{children}</>;
 }

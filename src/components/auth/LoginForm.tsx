@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface LoginFormProps {
   onToggleMode: () => void;
@@ -17,6 +18,10 @@ export function LoginForm({ onToggleMode, isSignup }: LoginFormProps) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { login, signup } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +35,11 @@ export function LoginForm({ onToggleMode, isSignup }: LoginFormProps) {
       } else {
         await login(email, password);
       }
+      
+      console.log('Authentication successful, navigating to:', from);
+      navigate(from, { replace: true });
     } catch (error) {
+      console.error('Authentication error:', error);
       // Error is handled in AuthContext
     }
     setLoading(false);
