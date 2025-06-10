@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { gpsTrackingService, GPSData } from '@/services/gpsTrackingService';
+import { gpsTrackingService } from '@/services/gpsTrackingService';
 import { telematicsService } from '@/services/telematicsService';
+import { GPSData } from '@/types/gps';
 
 export function useGPSTracking(vehicleId?: string) {
   const [gpsData, setGpsData] = useState<GPSData | null>(null);
