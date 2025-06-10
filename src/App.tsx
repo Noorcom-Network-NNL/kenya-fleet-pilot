@@ -13,6 +13,7 @@ import Fuel from "./pages/Fuel";
 import Maintenance from "./pages/Maintenance";
 import Tracking from "./pages/Tracking";
 import Settings from "./pages/Settings";
+import Subscription from "./pages/Subscription";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -58,6 +59,11 @@ const App = () => (
             <Route path="/settings" element={
               <ProtectedRoute>
                 <Settings />
+              </ProtectedRoute>
+            } />
+            <Route path="/subscription" element={
+              <ProtectedRoute>
+                <Subscription />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />
