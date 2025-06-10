@@ -11,7 +11,7 @@ import {
   Fuel 
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { GPSData } from '@/services/gpsTrackingService';
+import { GPSData } from '@/types/gps';
 
 interface VehicleStatusCardProps {
   gpsData: GPSData | null;
