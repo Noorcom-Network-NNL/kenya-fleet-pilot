@@ -1,3 +1,4 @@
+import { telematicsService, VehicleData as TelematicsVehicleData } from './telematicsService';
 
 export interface GPSData {
   deviceId: string;
@@ -37,6 +38,7 @@ class GPSTrackingService {
   private reconnectDelay = 1000;
   private subscribers: Map<string, (data: GPSData) => void> = new Map();
   private simulationIntervals: Map<string, NodeJS.Timeout> = new Map();
+  private telematicsInterval: NodeJS.Timeout | null = null;
 
   // Connect to GPS tracking server (you'll need to replace with actual server URL)
   connect(serverUrl: string = 'ws://localhost:8080/gps-tracking') {
@@ -47,6 +49,7 @@ class GPSTrackingService {
       this.wsConnection.onopen = () => {
         console.log('Connected to GPS tracking server');
         this.reconnectAttempts = 0;
+        this.startTelematicsPolling();
       };
 
       this.wsConnection.onmessage = (event) => {
@@ -61,6 +64,7 @@ class GPSTrackingService {
 
       this.wsConnection.onclose = () => {
         console.log('GPS tracking connection closed');
+        this.stopTelematicsPolling();
         this.attemptReconnect(serverUrl);
       };
 
@@ -70,6 +74,65 @@ class GPSTrackingService {
     } catch (error) {
       console.error('Failed to connect to GPS tracking server:', error);
       console.log('Falling back to simulation mode');
+      this.startTelematicsPolling();
+    }
+  }
+
+  // Start polling telematics service for real data
+  private startTelematicsPolling() {
+    const telematicsStatus = telematicsService.getStatus();
+    
+    if (telematicsStatus.enabled && telematicsStatus.configured) {
+      console.log('Starting telematics polling for provider:', telematicsStatus.provider);
+      
+      this.telematicsInterval = setInterval(async () => {
+        try {
+          const vehicleData = await telematicsService.getVehicleData();
+          vehicleData.forEach(vehicle => {
+            const gpsData = this.convertTelematicsToGPS(vehicle);
+            this.notifySubscribers(gpsData);
+          });
+        } catch (error) {
+          console.error('Error fetching telematics data:', error);
+        }
+      }, 30000); // Poll every 30 seconds
+    }
+  }
+
+  // Stop telematics polling
+  private stopTelematicsPolling() {
+    if (this.telematicsInterval) {
+      clearInterval(this.telematicsInterval);
+      this.telematicsInterval = null;
+      console.log('Stopped telematics polling');
+    }
+  }
+
+  // Convert telematics data to GPS format
+  private convertTelematicsToGPS(telematicsData: TelematicsVehicleData): GPSData {
+    return {
+      deviceId: telematicsData.deviceId,
+      timestamp: telematicsData.timestamp,
+      latitude: telematicsData.latitude,
+      longitude: telematicsData.longitude,
+      altitude: 0, // Not typically provided by telematics
+      speed: telematicsData.speed,
+      heading: telematicsData.heading,
+      satellites: 8, // Default value
+      hdop: 1.0, // Default value
+      ignition: telematicsData.engineStatus,
+      voltage: 12.0, // Default value
+      fuelLevel: telematicsData.fuelLevel,
+      temperature: telematicsData.temperature
+    };
+  }
+
+  // Notify subscribers of new GPS data
+  private notifySubscribers(gpsData: GPSData) {
+    const callback = this.subscribers.get(gpsData.deviceId);
+    if (callback) {
+      console.log('Sending GPS data to subscriber for device:', gpsData.deviceId);
+      callback(gpsData);
     }
   }
 
@@ -82,6 +145,7 @@ class GPSTrackingService {
       }, this.reconnectDelay * this.reconnectAttempts);
     } else {
       console.log('Max reconnection attempts reached, staying in simulation mode');
+      this.startTelematicsPolling();
     }
   }
 
@@ -104,15 +168,7 @@ class GPSTrackingService {
     };
 
     console.log('Processed GPS data:', gpsData);
-
-    // Notify all subscribers for this device
-    const callback = this.subscribers.get(gpsData.deviceId);
-    if (callback) {
-      console.log('Sending GPS data to subscriber for device:', gpsData.deviceId);
-      callback(gpsData);
-    } else {
-      console.log('No subscriber found for device:', gpsData.deviceId);
-    }
+    this.notifySubscribers(gpsData);
   }
 
   // Subscribe to GPS updates for a specific device
@@ -128,7 +184,7 @@ class GPSTrackingService {
       }));
       console.log('Sent subscription message to server for device:', deviceId);
     } else {
-      console.log('WebSocket not connected, subscription will be handled by simulation');
+      console.log('WebSocket not connected, subscription will be handled by simulation or telematics');
     }
   }
 
@@ -206,11 +262,7 @@ class GPSTrackingService {
       };
       
       console.log('Generated simulated GPS data:', gpsData);
-      
-      const callback = this.subscribers.get(deviceId);
-      if (callback) {
-        callback(gpsData);
-      }
+      this.notifySubscribers(gpsData);
     }, 2000);
     
     this.simulationIntervals.set(deviceId, interval);
@@ -228,6 +280,8 @@ class GPSTrackingService {
       this.wsConnection.close();
       this.wsConnection = null;
     }
+    
+    this.stopTelematicsPolling();
     
     // Clear all simulations
     this.simulationIntervals.forEach((interval) => {

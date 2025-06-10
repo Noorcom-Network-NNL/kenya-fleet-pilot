@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { gpsTrackingService, GPSData } from '@/services/gpsTrackingService';
+import { telematicsService } from '@/services/telematicsService';
 
 export function useGPSTracking(vehicleId?: string) {
   const [gpsData, setGpsData] = useState<GPSData | null>(null);
@@ -23,10 +24,13 @@ export function useGPSTracking(vehicleId?: string) {
         setPathHistory(prev => [...prev.slice(-50), data]); // Keep last 50 points
       });
 
-      // For demo purposes, simulate GPS data
-      const cleanup = gpsTrackingService.simulateGPSData(deviceId);
+      // For demo purposes, simulate GPS data if telematics is not configured
+      const telematicsStatus = telematicsService.getStatus();
+      if (!telematicsStatus.enabled || !telematicsStatus.configured) {
+        const cleanup = gpsTrackingService.simulateGPSData(deviceId);
+        return cleanup;
+      }
       
-      return cleanup;
     } catch (err) {
       console.error('GPS tracking error:', err);
       setError('Failed to start GPS tracking');
@@ -64,7 +68,21 @@ export function useGPSTracking(vehicleId?: string) {
     
     // Check if GPS tracking is enabled in settings
     const settings = localStorage.getItem('integrationSettings');
-    const integrationSettings = settings ? JSON.parse(settings) : { gpsTrackingEnabled: true };
+    const integrationSettings = settings ? JSON.parse(settings) : { 
+      gpsTrackingEnabled: true,
+      telematicsEnabled: false 
+    };
+    
+    // Configure telematics service if enabled
+    if (integrationSettings.telematicsEnabled) {
+      telematicsService.configure({
+        provider: integrationSettings.telematicsProvider || 'safaricom',
+        apiKey: integrationSettings.telematicsApiKey || '',
+        endpoint: integrationSettings.telematicsEndpoint || '',
+        enabled: true
+      });
+      console.log('Telematics service configured');
+    }
     
     if (integrationSettings.gpsTrackingEnabled) {
       // Connect to GPS tracking server using saved endpoint
