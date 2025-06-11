@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, where } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -53,10 +53,10 @@ export function useOrganizations() {
     try {
       console.log('Setting up Firestore listener for user:', currentUser.uid);
       
+      // Use simpler query without orderBy to avoid composite index requirement
       const q = query(
         collection(db, 'organizations'), 
-        where('ownerId', '==', currentUser.uid),
-        orderBy('createdAt', 'desc')
+        where('ownerId', '==', currentUser.uid)
       );
       
       const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -69,6 +69,9 @@ export function useOrganizations() {
           trialEndsAt: doc.data().trialEndsAt?.toDate(),
           subscriptionEndsAt: doc.data().subscriptionEndsAt?.toDate(),
         })) as Organization[];
+        
+        // Sort by createdAt in JavaScript instead of using Firestore orderBy
+        orgsData.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
         
         console.log('Processed organizations:', orgsData);
         setOrganizations(orgsData);
