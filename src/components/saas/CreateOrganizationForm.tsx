@@ -34,7 +34,18 @@ export function CreateOrganizationForm({ onClose }: CreateOrganizationFormProps)
   }, [nameValue, setValue]);
 
   const onSubmit = async (data: CreateOrgFormData) => {
-    await createOrganization(data);
+    // Include all required Organization properties
+    const organizationData = {
+      name: data.name,
+      slug: data.slug,
+      subscriptionTier: 'free' as const,
+      subscriptionStatus: 'trial' as const,
+      maxVehicles: 5,
+      maxUsers: 3,
+      features: ['basic_tracking', 'fuel_management']
+    };
+    
+    await createOrganization(organizationData);
     onClose();
   };
 
