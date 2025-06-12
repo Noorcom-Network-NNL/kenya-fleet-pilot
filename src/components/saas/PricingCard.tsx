@@ -26,6 +26,11 @@ interface PricingCardProps {
   loading?: boolean;
 }
 
+const formatKESPrice = (price: number): string => {
+  if (price === 0) return 'Free';
+  return `KES ${price.toLocaleString('en-KE')}`;
+};
+
 export function PricingCard({ plan, onSelect, currentPlan, loading }: PricingCardProps) {
   const isCurrentPlan = currentPlan === plan.id;
 
@@ -43,8 +48,8 @@ export function PricingCard({ plan, onSelect, currentPlan, loading }: PricingCar
       <CardHeader className="text-center">
         <CardTitle className="text-xl">{plan.name}</CardTitle>
         <div className="mt-2">
-          <span className="text-3xl font-bold">${plan.price}</span>
-          <span className="text-gray-500">/{plan.period}</span>
+          <span className="text-3xl font-bold">{formatKESPrice(plan.price)}</span>
+          {plan.price > 0 && <span className="text-gray-500">/{plan.period}</span>}
         </div>
         <p className="text-sm text-gray-600">{plan.description}</p>
       </CardHeader>

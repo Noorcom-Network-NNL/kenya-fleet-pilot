@@ -23,7 +23,7 @@ const pricingPlans: PricingPlan[] = [
   {
     id: 'basic',
     name: 'Basic',
-    price: 29,
+    price: 3800,
     period: 'month',
     description: 'Perfect for small fleets',
     features: ['Real-time tracking', 'Fuel management', 'Driver management', 'Basic analytics', 'Email support'],
@@ -35,7 +35,7 @@ const pricingPlans: PricingPlan[] = [
   {
     id: 'premium',
     name: 'Premium',
-    price: 79,
+    price: 10400,
     period: 'month',
     description: 'Best for growing businesses',
     features: ['Everything in Basic', 'Advanced analytics', 'Maintenance scheduling', 'Geofencing', 'Priority support'],
@@ -48,7 +48,7 @@ const pricingPlans: PricingPlan[] = [
   {
     id: 'enterprise',
     name: 'Enterprise',
-    price: 199,
+    price: 26000,
     period: 'month',
     description: 'For large organizations',
     features: ['Everything in Premium', 'Custom integrations', 'API access', 'Dedicated support', 'Custom reporting'],
