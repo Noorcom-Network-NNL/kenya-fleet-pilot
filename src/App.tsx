@@ -15,6 +15,7 @@ import Tracking from "./pages/Tracking";
 import Settings from "./pages/Settings";
 import Subscription from "./pages/Subscription";
 import Login from "./pages/Login";
+import InviteAccept from "./pages/InviteAccept";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/invite/:token" element={<InviteAccept />} />
             <Route path="/" element={
               <ProtectedRoute>
                 <Dashboard />

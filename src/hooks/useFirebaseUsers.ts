@@ -1,8 +1,9 @@
 
 import { useState, useEffect } from 'react';
-import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { useOrganizations } from '@/hooks/useOrganizations';
 
 export interface User {
   id: string;
@@ -12,15 +13,27 @@ export interface User {
   status: 'active' | 'inactive';
   lastLogin: string;
   createdAt: Date;
+  organizationId?: string;
 }
 
 export function useFirebaseUsers() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { currentOrganization } = useOrganizations();
 
   useEffect(() => {
-    const q = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+    if (!currentOrganization) {
+      setUsers([]);
+      setLoading(false);
+      return;
+    }
+
+    const q = query(
+      collection(db, 'users'), 
+      where('organizationId', '==', currentOrganization.id),
+      orderBy('createdAt', 'desc')
+    );
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const usersData = snapshot.docs.map(doc => ({
@@ -42,12 +55,22 @@ export function useFirebaseUsers() {
     });
 
     return () => unsubscribe();
-  }, [toast]);
+  }, [toast, currentOrganization]);
 
   const addUser = async (userData: Omit<User, 'id' | 'createdAt'>) => {
+    if (!currentOrganization) {
+      toast({
+        title: "Error",
+        description: "No organization selected",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       await addDoc(collection(db, 'users'), {
         ...userData,
+        organizationId: currentOrganization.id,
         createdAt: new Date(),
       });
       

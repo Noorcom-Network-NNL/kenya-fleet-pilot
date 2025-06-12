@@ -4,13 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
-import { User, UserPlus, Edit, Trash2, Shield, Eye, Loader2 } from 'lucide-react';
+import { User, UserPlus, Edit, Trash2, Shield, Eye, Loader2, Building, Link } from 'lucide-react';
 import { useFirebaseUsers } from '@/hooks/useFirebaseUsers';
+import { useOrganizations } from '@/hooks/useOrganizations';
 import { AddUserForm } from './AddUserForm';
+import { CreateOrganizationForm } from '@/components/saas/CreateOrganizationForm';
+import { InviteUserForm } from '@/components/saas/InviteUserForm';
 
 export function UserManagement() {
   const { users, loading, deleteUser } = useFirebaseUsers();
+  const { currentOrganization, organizations } = useOrganizations();
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showCreateOrgDialog, setShowCreateOrgDialog] = useState(false);
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -38,20 +44,87 @@ export function UserManagement() {
 
   return (
     <div className="space-y-6">
+      {/* Organization Management */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Building className="h-5 w-5" />
+            Organization Management
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium">Current Organization</h4>
+                <p className="text-sm text-gray-500">
+                  {currentOrganization ? currentOrganization.name : 'No organization selected'}
+                </p>
+              </div>
+              <Dialog open={showCreateOrgDialog} onOpenChange={setShowCreateOrgDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <Building className="h-4 w-4" />
+                    Create Organization
+                  </Button>
+                </DialogTrigger>
+                <CreateOrganizationForm onClose={() => setShowCreateOrgDialog(false)} />
+              </Dialog>
+            </div>
+
+            {organizations.length > 0 && (
+              <div className="space-y-2">
+                <h5 className="text-sm font-medium">Your Organizations</h5>
+                <div className="grid gap-2">
+                  {organizations.map((org) => (
+                    <div key={org.id} className="flex items-center justify-between p-2 border rounded">
+                      <div>
+                        <span className="font-medium">{org.name}</span>
+                        <Badge className="ml-2" variant={org.id === currentOrganization?.id ? 'default' : 'secondary'}>
+                          {org.id === currentOrganization?.id ? 'Current' : 'Available'}
+                        </Badge>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        /{org.slug}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* User Management */}
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-medium">User Management</h3>
-          <p className="text-sm text-gray-500">Manage users and their access permissions</p>
+          <p className="text-sm text-gray-500">
+            Manage users for {currentOrganization?.name || 'your organization'}
+          </p>
         </div>
-        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <UserPlus className="h-4 w-4" />
-              Add New User
-            </Button>
-          </DialogTrigger>
-          <AddUserForm onClose={() => setShowAddDialog(false)} />
-        </Dialog>
+        <div className="flex gap-2">
+          <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                <Link className="h-4 w-4" />
+                Invite User
+              </Button>
+            </DialogTrigger>
+            <InviteUserForm onClose={() => setShowInviteDialog(false)} />
+          </Dialog>
+          
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+            <DialogTrigger asChild>
+              <Button className="flex items-center gap-2">
+                <UserPlus className="h-4 w-4" />
+                Add User
+              </Button>
+            </DialogTrigger>
+            <AddUserForm onClose={() => setShowAddDialog(false)} />
+          </Dialog>
+        </div>
       </div>
 
       <Card>
@@ -115,6 +188,7 @@ export function UserManagement() {
         </CardContent>
       </Card>
 
+      {/* Role Permissions - keeping existing code */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
