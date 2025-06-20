@@ -128,7 +128,7 @@ export function useOrganizations() {
       const trialEndsAt = new Date();
       trialEndsAt.setDate(trialEndsAt.getDate() + 14); // 14-day trial
 
-      await addDoc(collection(db, 'organizations'), {
+      const docRef = await addDoc(collection(db, 'organizations'), {
         ...orgData,
         ownerId: currentUser.uid,
         ownerEmail: currentUser.email,
@@ -141,11 +141,13 @@ export function useOrganizations() {
         trialEndsAt,
       });
       
-      console.log('Organization created successfully');
+      console.log('Organization created successfully with ID:', docRef.id);
       toast({
         title: "Success",
         description: "Organization created successfully",
       });
+      
+      return docRef.id; // Return the created organization ID
     } catch (error) {
       console.error('Error creating organization:', error);
       toast({
@@ -153,6 +155,7 @@ export function useOrganizations() {
         description: "Failed to create organization",
         variant: "destructive",
       });
+      throw error;
     }
   };
 

@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
-import { User, UserPlus, Edit, Trash2, Shield, Eye, Loader2, Building, Link } from 'lucide-react';
+import { User, UserPlus, Edit, Trash2, Shield, Eye, Loader2, Building, Link, Copy } from 'lucide-react';
 import { useFirebaseUsers } from '@/hooks/useFirebaseUsers';
 import { useOrganizations } from '@/hooks/useOrganizations';
+import { useToast } from '@/hooks/use-toast';
 import { AddUserForm } from './AddUserForm';
 import { CreateOrganizationForm } from '@/components/saas/CreateOrganizationForm';
 import { InviteUserForm } from '@/components/saas/InviteUserForm';
@@ -14,6 +15,7 @@ import { InviteUserForm } from '@/components/saas/InviteUserForm';
 export function UserManagement() {
   const { users, loading, deleteUser } = useFirebaseUsers();
   const { currentOrganization, organizations } = useOrganizations();
+  const { toast } = useToast();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showCreateOrgDialog, setShowCreateOrgDialog] = useState(false);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
@@ -31,6 +33,17 @@ export function UserManagement() {
   const handleDeleteUser = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       await deleteUser(id);
+    }
+  };
+
+  const copyOrganizationUrl = async () => {
+    if (currentOrganization) {
+      const orgUrl = `${window.location.origin}/org/${currentOrganization.slug}`;
+      await navigator.clipboard.writeText(orgUrl);
+      toast({
+        title: "Copied!",
+        description: "Organization URL copied to clipboard",
+      });
     }
   };
 
@@ -55,11 +68,26 @@ export function UserManagement() {
         <CardContent>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1">
                 <h4 className="font-medium">Current Organization</h4>
                 <p className="text-sm text-gray-500">
                   {currentOrganization ? currentOrganization.name : 'No organization selected'}
                 </p>
+                {currentOrganization && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <code className="text-xs bg-gray-100 px-2 py-1 rounded">
+                      /{currentOrganization.slug}
+                    </code>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={copyOrganizationUrl}
+                      className="h-6 px-2"
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
               </div>
               <Dialog open={showCreateOrgDialog} onOpenChange={setShowCreateOrgDialog}>
                 <DialogTrigger asChild>
@@ -72,9 +100,30 @@ export function UserManagement() {
               </Dialog>
             </div>
 
-            {organizations.length > 0 && (
+            {currentOrganization && (
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h5 className="font-medium text-blue-900">Organization Details</h5>
+                    <div className="text-sm text-blue-700 space-y-1 mt-2">
+                      <div>Subscription: {currentOrganization.subscriptionTier} ({currentOrganization.subscriptionStatus})</div>
+                      <div>Max Vehicles: {currentOrganization.maxVehicles}</div>
+                      <div>Max Users: {currentOrganization.maxUsers}</div>
+                      <div>Current Users: {users.length}</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <Badge variant={currentOrganization.subscriptionStatus === 'trial' ? 'secondary' : 'default'}>
+                      {currentOrganization.subscriptionStatus}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {organizations.length > 1 && (
               <div className="space-y-2">
-                <h5 className="text-sm font-medium">Your Organizations</h5>
+                <h5 className="text-sm font-medium">All Your Organizations</h5>
                 <div className="grid gap-2">
                   {organizations.map((org) => (
                     <div key={org.id} className="flex items-center justify-between p-2 border rounded">
@@ -101,7 +150,8 @@ export function UserManagement() {
         <div>
           <h3 className="text-lg font-medium">User Management</h3>
           <p className="text-sm text-gray-500">
-            Manage users for {currentOrganization?.name || 'your organization'}
+            Manage users for {currentOrganization?.name || 'your organization'} 
+            {currentOrganization && ` (${users.length}/${currentOrganization.maxUsers} users)`}
           </p>
         </div>
         <div className="flex gap-2">
@@ -117,7 +167,10 @@ export function UserManagement() {
           
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
+              <Button 
+                className="flex items-center gap-2"
+                disabled={currentOrganization && users.length >= currentOrganization.maxUsers}
+              >
                 <UserPlus className="h-4 w-4" />
                 Add User
               </Button>
@@ -126,6 +179,15 @@ export function UserManagement() {
           </Dialog>
         </div>
       </div>
+
+      {currentOrganization && users.length >= currentOrganization.maxUsers && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-yellow-800 text-sm">
+            You've reached the maximum number of users ({currentOrganization.maxUsers}) for your current plan. 
+            Upgrade your subscription to add more users.
+          </p>
+        </div>
+      )}
 
       <Card>
         <CardHeader>
