@@ -32,7 +32,7 @@ export class OrganizationService {
 
   static subscribeToUserOrganizations(
     userId: string,
-    onSnapshot: (organizations: Organization[]) => void,
+    onSnapshotCallback: (organizations: Organization[]) => void,
     onError: (error: any) => void
   ): () => void {
     console.log('Setting up Firestore listener for user:', userId);
@@ -58,7 +58,7 @@ export class OrganizationService {
       orgsData.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
       
       console.log('Processed organizations:', orgsData);
-      onSnapshot(orgsData);
+      onSnapshotCallback(orgsData);
     }, onError);
 
     return unsubscribe;

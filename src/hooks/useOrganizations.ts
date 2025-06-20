@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { db } from '@/lib/firebase';
 import { Organization, CreateOrganizationData } from '@/types/organization';
 import { OrganizationService } from '@/services/organizationService';
 
