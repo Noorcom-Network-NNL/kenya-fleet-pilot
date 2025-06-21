@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -12,9 +13,10 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Search, Filter, Loader2, Users } from "lucide-react";
-import { useFirebaseDrivers } from "@/hooks/useFirebaseDrivers";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, Search, Filter, Loader2, Users, User, Phone, CreditCard, Calendar, Activity, Car } from "lucide-react";
+import { useFirebaseDrivers, Driver } from "@/hooks/useFirebaseDrivers";
 import { AddDriverForm } from "@/components/drivers/AddDriverForm";
 import { DriverExport } from "@/components/drivers/DriverExport";
 
@@ -47,6 +49,13 @@ const getPerformanceBadge = (performance: string) => {
 const Drivers = () => {
   const { drivers, loading, error } = useFirebaseDrivers();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+
+  const handleViewDriver = (driver: Driver) => {
+    setSelectedDriver(driver);
+    setIsViewDialogOpen(true);
+  };
 
   if (error) {
     return (
@@ -148,7 +157,9 @@ const Drivers = () => {
                     <TableCell>{getPerformanceBadge(driver.performance)}</TableCell>
                     <TableCell>{driver.assignedVehicle || "-"}</TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm">View</Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleViewDriver(driver)}>
+                        View
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -157,6 +168,135 @@ const Drivers = () => {
           </div>
         )}
       </div>
+
+      {/* Driver Details Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Driver Details
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedDriver && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Basic Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Basic Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12">
+                      <AvatarFallback className="bg-noorcom-100 text-noorcom-600 text-lg">
+                        {selectedDriver.name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h3 className="font-semibold text-lg">{selectedDriver.name}</h3>
+                      <p className="text-gray-600">Driver ID: {selectedDriver.id}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-gray-500" />
+                      <div>
+                        <p className="text-sm text-gray-500">Phone</p>
+                        <p className="font-medium">{selectedDriver.phone}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Activity className="h-4 w-4 text-gray-500" />
+                      <div>
+                        <p className="text-sm text-gray-500">Status</p>
+                        {getStatusBadge(selectedDriver.status)}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* License Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    License Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">License Number</p>
+                      <p className="font-medium">{selectedDriver.license}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">License Expiry</p>
+                      <p className={`font-medium ${new Date(selectedDriver.licenseExpiry) < new Date() ? 'text-red-600' : ''}`}>
+                        {selectedDriver.licenseExpiry}
+                        {new Date(selectedDriver.licenseExpiry) < new Date() && 
+                          <span className="ml-2 text-xs bg-red-100 text-red-600 px-2 py-1 rounded">EXPIRED</span>
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Performance & Assignment */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Activity className="h-4 w-4" />
+                    Performance
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Performance Rating</p>
+                      {getPerformanceBadge(selectedDriver.performance)}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Vehicle Assignment */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Car className="h-4 w-4" />
+                    Vehicle Assignment
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Car className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <p className="text-sm text-gray-500">Assigned Vehicle</p>
+                      <p className="font-medium">
+                        {selectedDriver.assignedVehicle || 'Not assigned'}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };
