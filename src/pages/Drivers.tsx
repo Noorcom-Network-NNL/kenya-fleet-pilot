@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -17,6 +16,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Search, Filter, Loader2, Users } from "lucide-react";
 import { useFirebaseDrivers } from "@/hooks/useFirebaseDrivers";
 import { AddDriverForm } from "@/components/drivers/AddDriverForm";
+import { DriverExport } from "@/components/drivers/DriverExport";
 
 const getStatusBadge = (status: string) => {
   switch (status) {
@@ -68,16 +68,19 @@ const Drivers = () => {
           <h2 className="text-lg font-medium">All Drivers</h2>
           <p className="text-sm text-gray-500">Manage and monitor your fleet drivers</p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Add Driver
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <AddDriverForm onSuccess={() => setIsAddDialogOpen(false)} />
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-3">
+          <DriverExport drivers={drivers} />
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" /> Add Driver
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <AddDriverForm onSuccess={() => setIsAddDialogOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm mb-6">

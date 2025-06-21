@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FuelConsumptionChart } from "@/components/dashboard/FuelConsumptionChart";
 import { AddFuelRecordForm } from "@/components/fuel/AddFuelRecordForm";
 import { FuelRecordsTable } from "@/components/fuel/FuelRecordsTable";
+import { FuelExport } from "@/components/fuel/FuelExport";
 import { useFirebaseFuel } from "@/hooks/useFirebaseFuel";
 import { Fuel as FuelIcon, Plus, BarChart3 } from "lucide-react";
 
@@ -83,7 +84,10 @@ const Fuel = () => {
         <TabsContent value="all-records">
           <Card>
             <CardHeader>
-              <CardTitle>All Fuel Records</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>All Fuel Records</CardTitle>
+                <FuelExport fuelRecords={fuelRecords} />
+              </div>
             </CardHeader>
             <CardContent>
               {loading ? (
