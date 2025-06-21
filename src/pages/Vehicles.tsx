@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -12,9 +11,9 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Car, Plus, Search, Filter, Loader2 } from "lucide-react";
-import { useFirebaseVehicles } from "@/hooks/useFirebaseVehicles";
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Car, Plus, Search, Filter, Loader2, User, Calendar, Fuel, Settings } from "lucide-react";
+import { useFirebaseVehicles, Vehicle } from "@/hooks/useFirebaseVehicles";
 import { AddVehicleForm } from "@/components/vehicles/AddVehicleForm";
 
 const getStatusBadge = (status: string) => {
@@ -32,9 +31,103 @@ const getStatusBadge = (status: string) => {
   }
 };
 
+const VehicleDetailsModal = ({ vehicle, isOpen, onClose }: { vehicle: Vehicle; isOpen: boolean; onClose: () => void }) => {
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Car className="h-5 w-5" />
+            Vehicle Details - {vehicle.regNumber}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Car className="h-5 w-5 text-gray-500" />
+              <div>
+                <p className="text-sm text-gray-500">Make & Model</p>
+                <p className="font-medium">{vehicle.make} {vehicle.model}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Calendar className="h-5 w-5 text-gray-500" />
+              <div>
+                <p className="text-sm text-gray-500">Year</p>
+                <p className="font-medium">{vehicle.year}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <User className="h-5 w-5 text-gray-500" />
+              <div>
+                <p className="text-sm text-gray-500">Driver</p>
+                <p className="font-medium">{vehicle.driver}</p>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="h-5 w-5 flex items-center">
+                <div className="w-3 h-3 rounded-full bg-current"></div>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Status</p>
+                <div className="mt-1">{getStatusBadge(vehicle.status)}</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Fuel className="h-5 w-5 text-gray-500" />
+              <div>
+                <p className="text-sm text-gray-500">Fuel Level</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${
+                        vehicle.fuelLevel > 70 ? "bg-green-500" : 
+                        vehicle.fuelLevel > 30 ? "bg-amber-500" : "bg-red-500"
+                      }`}
+                      style={{ width: `${vehicle.fuelLevel}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-sm font-medium">{vehicle.fuelLevel}%</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Settings className="h-5 w-5 text-gray-500" />
+              <div>
+                <p className="text-sm text-gray-500">Insurance</p>
+                <p className={`font-medium ${vehicle.insurance?.includes("Expired") ? "text-red-600" : ""}`}>
+                  {vehicle.insurance || "Not specified"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Calendar className="h-5 w-5 text-gray-500" />
+              <div>
+                <p className="text-sm text-gray-500">Next Service</p>
+                <p className={`font-medium ${vehicle.nextService?.includes("Due") ? "text-red-600" : ""}`}>
+                  {vehicle.nextService || "Not specified"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const Vehicles = () => {
   const { vehicles, loading, error } = useFirebaseVehicles();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+
+  const handleViewVehicle = (vehicle: Vehicle) => {
+    setSelectedVehicle(vehicle);
+    setIsViewDialogOpen(true);
+  };
 
   if (error) {
     return (
@@ -126,14 +219,20 @@ const Vehicles = () => {
                     <TableCell>{vehicle.year}</TableCell>
                     <TableCell>{getStatusBadge(vehicle.status)}</TableCell>
                     <TableCell>{vehicle.driver}</TableCell>
-                    <TableCell className={vehicle.insurance.includes("Expired") ? "text-red-600" : ""}>
+                    <TableCell className={vehicle.insurance?.includes("Expired") ? "text-red-600" : ""}>
                       {vehicle.insurance || "Not specified"}
                     </TableCell>
-                    <TableCell className={vehicle.nextService.includes("Due") ? "text-red-600" : ""}>
+                    <TableCell className={vehicle.nextService?.includes("Due") ? "text-red-600" : ""}>
                       {vehicle.nextService || "Not specified"}
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm">View</Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleViewVehicle(vehicle)}
+                      >
+                        View
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -142,6 +241,14 @@ const Vehicles = () => {
           </div>
         )}
       </div>
+
+      {selectedVehicle && (
+        <VehicleDetailsModal
+          vehicle={selectedVehicle}
+          isOpen={isViewDialogOpen}
+          onClose={() => setIsViewDialogOpen(false)}
+        />
+      )}
     </MainLayout>
   );
 };
