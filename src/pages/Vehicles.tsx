@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from 
 import { Car, Plus, Search, Filter, Loader2, User, Calendar, Fuel, Settings } from "lucide-react";
 import { useFirebaseVehicles, Vehicle } from "@/hooks/useFirebaseVehicles";
 import { AddVehicleForm } from "@/components/vehicles/AddVehicleForm";
+import { VehicleExport } from "@/components/vehicles/VehicleExport";
 
 const getStatusBadge = (status: string) => {
   switch (status) {
@@ -149,16 +150,19 @@ const Vehicles = () => {
           <h2 className="text-lg font-medium">All Vehicles</h2>
           <p className="text-sm text-gray-500">Manage and monitor your fleet vehicles</p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Add Vehicle
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <AddVehicleForm onSuccess={() => setIsAddDialogOpen(false)} />
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-3">
+          <VehicleExport vehicles={vehicles} />
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" /> Add Vehicle
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <AddVehicleForm onSuccess={() => setIsAddDialogOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm mb-6">
