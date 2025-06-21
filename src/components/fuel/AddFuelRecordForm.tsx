@@ -30,21 +30,74 @@ export function AddFuelRecordForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submission started with data:', formData);
+    
+    // Validation
+    if (!formData.vehicleId || !formData.driverId) {
+      toast({
+        title: "Validation Error",
+        description: "Please select both vehicle and driver",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.fuelAmount || !formData.pricePerLiter || !formData.odometer || !formData.fuelStation) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const fuelAmount = parseFloat(formData.fuelAmount);
+    const pricePerLiter = parseFloat(formData.pricePerLiter);
+    const odometer = parseInt(formData.odometer);
+
+    // Additional validation
+    if (isNaN(fuelAmount) || fuelAmount <= 0 || fuelAmount > 500) {
+      toast({
+        title: "Validation Error",
+        description: "Fuel amount must be between 0.1 and 500 liters",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isNaN(pricePerLiter) || pricePerLiter <= 0 || pricePerLiter > 1000) {
+      toast({
+        title: "Validation Error",
+        description: "Price per liter must be between 0.01 and 1000 KES",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isNaN(odometer) || odometer < 0 || odometer > 9999999) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a valid odometer reading",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       const selectedVehicle = vehicles.find(v => v.id === formData.vehicleId);
       const selectedDriver = drivers.find(d => d.id === formData.driverId);
 
+      console.log('Selected vehicle:', selectedVehicle);
+      console.log('Selected driver:', selectedDriver);
+
       if (!selectedVehicle || !selectedDriver) {
-        throw new Error("Please select both vehicle and driver");
+        throw new Error("Selected vehicle or driver not found");
       }
 
-      const fuelAmount = parseFloat(formData.fuelAmount);
-      const pricePerLiter = parseFloat(formData.pricePerLiter);
       const fuelCost = fuelAmount * pricePerLiter;
-
-      await addFuelRecord({
+      const recordData = {
         vehicleId: formData.vehicleId,
         vehicleRegNumber: selectedVehicle.regNumber,
         driverId: formData.driverId,
@@ -52,11 +105,15 @@ export function AddFuelRecordForm() {
         fuelAmount,
         fuelCost,
         pricePerLiter,
-        odometer: parseInt(formData.odometer),
-        fuelStation: formData.fuelStation,
-        receiptNumber: formData.receiptNumber || undefined,
+        odometer,
+        fuelStation: formData.fuelStation.trim(),
+        receiptNumber: formData.receiptNumber?.trim() || undefined,
         date: new Date(formData.date)
-      });
+      };
+
+      console.log('Adding fuel record with data:', recordData);
+      
+      await addFuelRecord(recordData);
 
       // Reset form
       setFormData({
@@ -74,10 +131,13 @@ export function AddFuelRecordForm() {
         title: "Success",
         description: "Fuel record added successfully",
       });
+
+      console.log('Fuel record added successfully');
     } catch (error: any) {
+      console.error('Error adding fuel record:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to add fuel record. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -89,7 +149,7 @@ export function AddFuelRecordForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="vehicle">Vehicle</Label>
+          <Label htmlFor="vehicle">Vehicle *</Label>
           <Select value={formData.vehicleId} onValueChange={(value) => setFormData({...formData, vehicleId: value})}>
             <SelectTrigger>
               <SelectValue placeholder="Select vehicle" />
@@ -105,7 +165,7 @@ export function AddFuelRecordForm() {
         </div>
 
         <div>
-          <Label htmlFor="driver">Driver</Label>
+          <Label htmlFor="driver">Driver *</Label>
           <Select value={formData.driverId} onValueChange={(value) => setFormData({...formData, driverId: value})}>
             <SelectTrigger>
               <SelectValue placeholder="Select driver" />
@@ -121,42 +181,52 @@ export function AddFuelRecordForm() {
         </div>
 
         <div>
-          <Label htmlFor="fuelAmount">Fuel Amount (Liters)</Label>
+          <Label htmlFor="fuelAmount">Fuel Amount (Liters) *</Label>
           <Input
             type="number"
             step="0.1"
+            min="0.1"
+            max="500"
             value={formData.fuelAmount}
             onChange={(e) => setFormData({...formData, fuelAmount: e.target.value})}
+            placeholder="e.g., 50.5"
             required
           />
         </div>
 
         <div>
-          <Label htmlFor="pricePerLiter">Price per Liter (KES)</Label>
+          <Label htmlFor="pricePerLiter">Price per Liter (KES) *</Label>
           <Input
             type="number"
             step="0.01"
+            min="0.01"
+            max="1000"
             value={formData.pricePerLiter}
             onChange={(e) => setFormData({...formData, pricePerLiter: e.target.value})}
+            placeholder="e.g., 123.50"
             required
           />
         </div>
 
         <div>
-          <Label htmlFor="odometer">Odometer Reading (km)</Label>
+          <Label htmlFor="odometer">Odometer Reading (km) *</Label>
           <Input
             type="number"
+            min="0"
+            max="9999999"
             value={formData.odometer}
             onChange={(e) => setFormData({...formData, odometer: e.target.value})}
+            placeholder="e.g., 58000"
             required
           />
         </div>
 
         <div>
-          <Label htmlFor="fuelStation">Fuel Station</Label>
+          <Label htmlFor="fuelStation">Fuel Station *</Label>
           <Input
             value={formData.fuelStation}
             onChange={(e) => setFormData({...formData, fuelStation: e.target.value})}
+            placeholder="e.g., Total Petrol Station"
             required
           />
         </div>
@@ -166,11 +236,12 @@ export function AddFuelRecordForm() {
           <Input
             value={formData.receiptNumber}
             onChange={(e) => setFormData({...formData, receiptNumber: e.target.value})}
+            placeholder="e.g., RCP123456"
           />
         </div>
 
         <div>
-          <Label htmlFor="date">Date</Label>
+          <Label htmlFor="date">Date *</Label>
           <Input
             type="date"
             value={formData.date}
@@ -179,6 +250,15 @@ export function AddFuelRecordForm() {
           />
         </div>
       </div>
+
+      {/* Display calculated total cost */}
+      {formData.fuelAmount && formData.pricePerLiter && (
+        <div className="bg-blue-50 p-4 rounded-lg">
+          <p className="text-sm text-blue-800">
+            <strong>Total Cost: KES {(parseFloat(formData.fuelAmount || '0') * parseFloat(formData.pricePerLiter || '0')).toFixed(2)}</strong>
+          </p>
+        </div>
+      )}
 
       <div className="flex justify-end">
         <Button type="submit" disabled={loading}>
