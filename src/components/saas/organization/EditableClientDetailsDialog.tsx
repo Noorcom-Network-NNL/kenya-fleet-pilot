@@ -9,10 +9,11 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Organization } from '@/types/organization';
-import { CalendarDays, CreditCard, Mail, Phone, Building, User, Crown, Calendar, Edit, Save, X } from 'lucide-react';
+import { CalendarDays, CreditCard, Mail, Phone, Building, User, Crown, Calendar, Edit, Save, X, Users, Eye, EyeOff } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { getSubscriptionBadgeColor } from './constants';
 import { useToast } from '@/hooks/use-toast';
+import { useFirebaseUsers } from '@/hooks/useFirebaseUsers';
 
 interface EditableClientDetailsDialogProps {
   showClientDialog: boolean;
@@ -37,7 +38,9 @@ export function EditableClientDetailsDialog({
 }: EditableClientDetailsDialogProps) {
   const isMobile = useIsMobile();
   const { toast } = useToast();
+  const { users } = useFirebaseUsers();
   const [isEditing, setIsEditing] = useState(false);
+  const [showPasswords, setShowPasswords] = useState<{[key: string]: boolean}>({});
   const [editData, setEditData] = useState<EditableClientData>({
     ownerEmail: '',
     phone: '',
@@ -74,6 +77,9 @@ export function EditableClientDetailsDialog({
   };
 
   const nextExpiryDate = getNextExpiryDate(selectedOrgForClient);
+
+  // Filter users for the current organization
+  const orgUsers = users.filter(user => user.organizationId === selectedOrgForClient.id);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -115,6 +121,18 @@ export function EditableClientDetailsDialog({
 
   const handleInputChange = (field: keyof EditableClientData, value: string) => {
     setEditData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const togglePasswordVisibility = (userId: string) => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [userId]: !prev[userId]
+    }));
+  };
+
+  // Mock password data for demo purposes
+  const getUserPassword = (userId: string) => {
+    return `Pass${userId.slice(0, 4)}!`;
   };
 
   return (
@@ -255,6 +273,77 @@ export function EditableClientDetailsDialog({
             </CardContent>
           </Card>
 
+          {/* Associated Users */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Associated Users ({orgUsers.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {orgUsers.length === 0 ? (
+                <div className="text-center py-4">
+                  <Users className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                  <p className="text-gray-500 text-sm">No users found for this organization</p>
+                </div>
+              ) : (
+                <div className="border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Password</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Last Login</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {orgUsers.map((user) => (
+                        <TableRow key={user.id}>
+                          <TableCell className="font-medium">{user.name}</TableCell>
+                          <TableCell>{user.email}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-sm">
+                                {showPasswords[user.id] ? getUserPassword(user.id) : '••••••••'}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => togglePasswordVisibility(user.id)}
+                                className="h-6 w-6 p-0"
+                              >
+                                {showPasswords[user.id] ? (
+                                  <EyeOff className="h-3 w-3" />
+                                ) : (
+                                  <Eye className="h-3 w-3" />
+                                )}
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">
+                              {user.role}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={user.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                              {user.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm text-gray-600">{user.lastLogin}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Subscription & Payment Details */}
           <Card>
             <CardHeader>
@@ -385,7 +474,7 @@ export function EditableClientDetailsDialog({
                   <h4 className="font-medium mb-2">Usage Limits</h4>
                   <div className="space-y-1 text-sm">
                     <div>Vehicles: 0 / {selectedOrgForClient.maxVehicles === -1 ? '∞' : selectedOrgForClient.maxVehicles}</div>
-                    <div>Users: 1 / {selectedOrgForClient.maxUsers === -1 ? '∞' : selectedOrgForClient.maxUsers}</div>
+                    <div>Users: {orgUsers.length} / {selectedOrgForClient.maxUsers === -1 ? '∞' : selectedOrgForClient.maxUsers}</div>
                     <div>Storage: 2.1 GB / 10 GB</div>
                   </div>
                 </div>
