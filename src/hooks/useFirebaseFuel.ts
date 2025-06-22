@@ -86,7 +86,21 @@ export function useFirebaseFuel() {
       const now = new Date();
       
       // Clean the record to remove undefined values
-      const cleanRecord = {
+      const cleanRecord: {
+        vehicleId: string;
+        vehicleRegNumber: string;
+        driverId: string;
+        driverName: string;
+        fuelAmount: number;
+        fuelCost: number;
+        pricePerLiter: number;
+        odometer: number;
+        fuelStation: string;
+        date: Date;
+        createdAt: Date;
+        updatedAt: Date;
+        receiptNumber?: string;
+      } = {
         vehicleId: record.vehicleId,
         vehicleRegNumber: record.vehicleRegNumber,
         driverId: record.driverId,
