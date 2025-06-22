@@ -10,6 +10,8 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
+const SUPER_ADMIN_EMAIL = 'admin@noorcomfleet.co.ke';
+
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { currentUser, loading: authLoading } = useAuth();
   const { users, loading: usersLoading } = useFirebaseUsers();
@@ -31,6 +33,12 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   if (!currentUser) {
     console.log('No user, redirecting to login');
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Check if user is the super admin
+  if (currentUser.email === SUPER_ADMIN_EMAIL) {
+    console.log('Super admin detected, granting access:', currentUser.email);
+    return <>{children}</>;
   }
 
   // Check if user exists in any organization's user list
