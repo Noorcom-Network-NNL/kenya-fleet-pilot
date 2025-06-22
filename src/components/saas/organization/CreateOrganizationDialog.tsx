@@ -10,19 +10,23 @@ import { useFirebaseUsers } from '@/hooks/useFirebaseUsers';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CreateOrganizationDialogProps {
   showCreateDialog: boolean;
   setShowCreateDialog: (show: boolean) => void;
 }
 
+const SUPER_ADMIN_EMAIL = 'admin@noorcomfleet.co.ke';
+
 export function CreateOrganizationDialog({
   showCreateDialog,
   setShowCreateDialog
 }: CreateOrganizationDialogProps) {
-  const { createOrganization } = useOrganizations();
+  const { createOrganization, currentOrganization, setCurrentOrganization } = useOrganizations();
   const { addUser } = useFirebaseUsers();
   const { toast } = useToast();
+  const { currentUser } = useAuth();
   const [newOrgName, setNewOrgName] = useState('');
   const [adminName, setAdminName] = useState('');
   const [adminEmail, setAdminEmail] = useState('');
@@ -50,6 +54,11 @@ export function CreateOrganizationDialog({
     }
 
     setLoading(true);
+    
+    // Store the current organization context for super admin
+    const previousOrganization = currentOrganization;
+    const isSuperAdmin = currentUser?.email === SUPER_ADMIN_EMAIL;
+    
     try {
       const slug = newOrgName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
       
@@ -77,6 +86,11 @@ export function CreateOrganizationDialog({
           };
           
           await addUser(adminUserData);
+          
+          // Restore super admin's previous context (should be null)
+          if (isSuperAdmin) {
+            setCurrentOrganization(previousOrganization);
+          }
           
           toast({
             title: "Organization Created",

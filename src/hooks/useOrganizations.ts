@@ -91,6 +91,8 @@ export function useOrganizations() {
   const createOrganization = async (orgData: CreateOrganizationData) => {
     if (!currentUser) throw new Error('User not authenticated');
 
+    const isSuperAdmin = currentUser.email === SUPER_ADMIN_EMAIL;
+
     try {
       const orgId = await OrganizationService.createOrganization(
         orgData,
@@ -102,6 +104,14 @@ export function useOrganizations() {
         title: "Success",
         description: "Organization created successfully",
       });
+      
+      // Don't switch context for super admin - they should stay in management view
+      if (!isSuperAdmin) {
+        // For regular users, they might want to switch to the new org
+        console.log('Regular user created organization, allowing context switch');
+      } else {
+        console.log('Super admin created organization, maintaining management context');
+      }
       
       return orgId;
     } catch (error) {
@@ -151,10 +161,24 @@ export function useOrganizations() {
     }
   };
 
+  // Custom setCurrentOrganization that respects super admin context
+  const handleSetCurrentOrganization = (org: Organization | null) => {
+    const isSuperAdmin = currentUser?.email === SUPER_ADMIN_EMAIL;
+    
+    if (isSuperAdmin) {
+      console.log('Super admin attempting to switch organization context - preventing');
+      // Super admins should not switch organization context
+      return;
+    }
+    
+    console.log('Setting current organization for regular user:', org?.name);
+    setCurrentOrganization(org);
+  };
+
   return {
     organizations,
     currentOrganization,
-    setCurrentOrganization,
+    setCurrentOrganization: handleSetCurrentOrganization,
     loading,
     createOrganization,
     updateOrganization,
