@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -6,20 +7,26 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Building, Plus } from 'lucide-react';
 import { useOrganizations } from '@/hooks/useOrganizations';
+import { useFirebaseUsers } from '@/hooks/useFirebaseUsers';
 
 export function OrganizationSelector() {
   const { organizations, currentOrganization, setCurrentOrganization, createOrganization } = useOrganizations();
+  const { addUser } = useFirebaseUsers();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newOrgName, setNewOrgName] = useState('');
+  const [adminName, setAdminName] = useState('');
+  const [adminEmail, setAdminEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleCreateOrganization = async () => {
-    if (!newOrgName.trim()) return;
+    if (!newOrgName.trim() || !adminName.trim() || !adminEmail.trim()) return;
 
     setLoading(true);
     try {
       const slug = newOrgName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      await createOrganization({
+      
+      // First create the organization
+      const orgId = await createOrganization({
         name: newOrgName,
         slug,
         subscriptionTier: 'free',
@@ -29,10 +36,27 @@ export function OrganizationSelector() {
         features: ['basic_tracking', 'fuel_management']
       });
       
+      // Then create the admin user for this organization
+      if (orgId) {
+        const adminUserData = {
+          name: adminName,
+          email: adminEmail,
+          role: 'Fleet Admin' as const,
+          status: 'active' as const,
+          lastLogin: 'Never',
+          organizationId: orgId
+        };
+        
+        await addUser(adminUserData);
+      }
+      
+      // Reset form
       setNewOrgName('');
+      setAdminName('');
+      setAdminEmail('');
       setShowCreateDialog(false);
     } catch (error) {
-      console.error('Error creating organization:', error);
+      console.error('Error creating organization and admin user:', error);
     } finally {
       setLoading(false);
     }
@@ -47,7 +71,7 @@ export function OrganizationSelector() {
             Create Organization
           </Button>
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Create New Organization</DialogTitle>
           </DialogHeader>
@@ -61,11 +85,45 @@ export function OrganizationSelector() {
                 placeholder="Enter organization name"
               />
             </div>
+            
+            <div className="border-t pt-4">
+              <h4 className="font-medium mb-3">Default Admin User</h4>
+              
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="adminName">Admin Name</Label>
+                  <Input
+                    id="adminName"
+                    value={adminName}
+                    onChange={(e) => setAdminName(e.target.value)}
+                    placeholder="Enter admin full name"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="adminEmail">Admin Email</Label>
+                  <Input
+                    id="adminEmail"
+                    type="email"
+                    value={adminEmail}
+                    onChange={(e) => setAdminEmail(e.target.value)}
+                    placeholder="admin@company.com"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    This user will be able to log in and manage the fleet
+                  </p>
+                </div>
+              </div>
+            </div>
+            
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleCreateOrganization} disabled={!newOrgName.trim() || loading}>
+              <Button 
+                onClick={handleCreateOrganization} 
+                disabled={!newOrgName.trim() || !adminName.trim() || !adminEmail.trim() || loading}
+              >
                 {loading ? 'Creating...' : 'Create'}
               </Button>
             </div>
@@ -109,7 +167,7 @@ export function OrganizationSelector() {
             <Plus className="h-4 w-4" />
           </Button>
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Create New Organization</DialogTitle>
           </DialogHeader>
@@ -123,11 +181,45 @@ export function OrganizationSelector() {
                 placeholder="Enter organization name"
               />
             </div>
+            
+            <div className="border-t pt-4">
+              <h4 className="font-medium mb-3">Default Admin User</h4>
+              
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="adminName">Admin Name</Label>
+                  <Input
+                    id="adminName"
+                    value={adminName}
+                    onChange={(e) => setAdminName(e.target.value)}
+                    placeholder="Enter admin full name"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="adminEmail">Admin Email</Label>
+                  <Input
+                    id="adminEmail"
+                    type="email"
+                    value={adminEmail}
+                    onChange={(e) => setAdminEmail(e.target.value)}
+                    placeholder="admin@company.com"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    This user will be able to log in and manage the fleet
+                  </p>
+                </div>
+              </div>
+            </div>
+            
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleCreateOrganization} disabled={!newOrgName.trim() || loading}>
+              <Button 
+                onClick={handleCreateOrganization} 
+                disabled={!newOrgName.trim() || !adminName.trim() || !adminEmail.trim() || loading}
+              >
                 {loading ? 'Creating...' : 'Create'}
               </Button>
             </div>
