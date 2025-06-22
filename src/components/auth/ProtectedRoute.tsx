@@ -22,7 +22,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   console.log('ProtectedRoute - usersLoading:', usersLoading, 'users count:', users.length);
   console.log('ProtectedRoute - orgLoading:', orgLoading, 'currentOrganization:', currentOrganization);
 
-  if (authLoading || usersLoading || orgLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -39,6 +39,15 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   if (currentUser.email === SUPER_ADMIN_EMAIL) {
     console.log('Super admin detected, granting access:', currentUser.email);
     return <>{children}</>;
+  }
+
+  // Wait for users and organizations to load before making authorization decisions
+  if (usersLoading || orgLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
   // Check if user exists in any organization's user list
