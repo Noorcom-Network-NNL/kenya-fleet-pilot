@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react';
 import { useCreateOrganization } from '@/hooks/useCreateOrganization';
 import { OrganizationBasicInfo } from './OrganizationBasicInfo';
 import { AdminUserForm } from './AdminUserForm';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CreateOrganizationDialogProps {
   showCreateDialog: boolean;
@@ -17,6 +18,7 @@ export function CreateOrganizationDialog({
   setShowCreateDialog
 }: CreateOrganizationDialogProps) {
   const { loading, handleCreateOrganization } = useCreateOrganization();
+  const isMobile = useIsMobile();
   const [newOrgName, setNewOrgName] = useState('');
   const [adminName, setAdminName] = useState('');
   const [adminEmail, setAdminEmail] = useState('');
@@ -50,16 +52,17 @@ export function CreateOrganizationDialog({
   return (
     <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
       <DialogTrigger asChild>
-        <Button className="flex items-center gap-2">
+        <Button className="flex items-center gap-2 w-full sm:w-auto">
           <Plus className="h-4 w-4" />
-          Add Organization
+          <span className="hidden sm:inline">Add Organization</span>
+          <span className="sm:hidden">Add Org</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[90vh]' : 'max-w-md'} overflow-y-auto`}>
         <DialogHeader>
-          <DialogTitle>Create New Organization</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">Create New Organization</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+        <div className="space-y-4 max-h-[70vh] overflow-y-auto">
           <OrganizationBasicInfo
             orgName={newOrgName}
             onOrgNameChange={setNewOrgName}
@@ -77,13 +80,19 @@ export function CreateOrganizationDialog({
             onToggleShowPassword={() => setShowPassword(!showPassword)}
           />
           
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={handleCancel} disabled={loading}>
+          <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4 border-t">
+            <Button 
+              variant="outline" 
+              onClick={handleCancel} 
+              disabled={loading}
+              className="w-full sm:w-auto"
+            >
               Cancel
             </Button>
             <Button 
               onClick={onCreateOrganization} 
               disabled={!isFormValid || loading}
+              className="w-full sm:w-auto"
             >
               {loading ? 'Creating...' : 'Create'}
             </Button>

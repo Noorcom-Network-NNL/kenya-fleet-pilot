@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Organization } from '@/types/organization';
 import { getSubscriptionBadgeColor } from './constants';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface OrganizationMetricsDialogProps {
   showMetricsDialog: boolean;
@@ -17,11 +18,13 @@ export function OrganizationMetricsDialog({
   setShowMetricsDialog,
   selectedOrgForMetrics
 }: OrganizationMetricsDialogProps) {
+  const isMobile = useIsMobile();
+
   return (
     <Dialog open={showMetricsDialog} onOpenChange={setShowMetricsDialog}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[90vh]' : 'max-w-2xl'} overflow-y-auto`}>
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl truncate">
             {selectedOrgForMetrics?.name} - Metrics & Analytics
           </DialogTitle>
         </DialogHeader>
@@ -33,28 +36,28 @@ export function OrganizationMetricsDialog({
                 <CardTitle className="text-sm">Subscription Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <div className="flex justify-between">
-                  <span>Plan:</span>
-                  <Badge variant="outline">{selectedOrgForMetrics.subscriptionTier}</Badge>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Plan:</span>
+                  <Badge variant="outline" className="text-xs">{selectedOrgForMetrics.subscriptionTier}</Badge>
                 </div>
-                <div className="flex justify-between">
-                  <span>Status:</span>
-                  <Badge className={getSubscriptionBadgeColor(selectedOrgForMetrics.subscriptionStatus)}>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Status:</span>
+                  <Badge className={`text-xs ${getSubscriptionBadgeColor(selectedOrgForMetrics.subscriptionStatus)}`}>
                     {selectedOrgForMetrics.subscriptionStatus}
                   </Badge>
                 </div>
                 <div className="flex justify-between">
-                  <span>Max Vehicles:</span>
-                  <span>{selectedOrgForMetrics.maxVehicles}</span>
+                  <span className="text-sm">Max Vehicles:</span>
+                  <span className="text-sm font-medium">{selectedOrgForMetrics.maxVehicles}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Max Users:</span>
-                  <span>{selectedOrgForMetrics.maxUsers}</span>
+                  <span className="text-sm">Max Users:</span>
+                  <span className="text-sm font-medium">{selectedOrgForMetrics.maxUsers}</span>
                 </div>
                 {selectedOrgForMetrics.trialEndsAt && (
                   <div className="flex justify-between">
-                    <span>Trial Ends:</span>
-                    <span>{selectedOrgForMetrics.trialEndsAt.toLocaleDateString()}</span>
+                    <span className="text-sm">Trial Ends:</span>
+                    <span className="text-sm font-medium">{selectedOrgForMetrics.trialEndsAt.toLocaleDateString()}</span>
                   </div>
                 )}
               </CardContent>
@@ -68,7 +71,7 @@ export function OrganizationMetricsDialog({
               <CardContent>
                 <div className="flex flex-wrap gap-2">
                   {selectedOrgForMetrics.features.map((feature) => (
-                    <Badge key={feature} variant="secondary">
+                    <Badge key={feature} variant="secondary" className="text-xs">
                       {feature.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     </Badge>
                   ))}
@@ -82,13 +85,13 @@ export function OrganizationMetricsDialog({
                 <CardTitle className="text-sm">Organization Owner</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <div className="flex justify-between">
-                  <span>Owner Email:</span>
-                  <span>{selectedOrgForMetrics.ownerEmail}</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                  <span className="text-sm">Owner Email:</span>
+                  <span className="text-sm font-medium break-all">{selectedOrgForMetrics.ownerEmail}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Login URL:</span>
-                  <span className="text-blue-600">/{selectedOrgForMetrics.slug}/login</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                  <span className="text-sm">Login URL:</span>
+                  <span className="text-sm text-blue-600 break-all">/{selectedOrgForMetrics.slug}/login</span>
                 </div>
               </CardContent>
             </Card>

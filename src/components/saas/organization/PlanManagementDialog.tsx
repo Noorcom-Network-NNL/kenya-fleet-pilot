@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Organization } from '@/types/organization';
 import { pricingPlans } from './constants';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface PlanManagementDialogProps {
   showPlanDialog: boolean;
@@ -21,17 +22,19 @@ export function PlanManagementDialog({
   setSelectedOrgForPlan,
   onPlanUpdate
 }: PlanManagementDialogProps) {
+  const isMobile = useIsMobile();
+
   return (
     <Dialog open={showPlanDialog} onOpenChange={setShowPlanDialog}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className={`${isMobile ? 'max-w-[95vw] max-h-[90vh]' : 'max-w-2xl'} overflow-y-auto`}>
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl truncate">
             Manage Plan - {selectedOrgForPlan?.name}
           </DialogTitle>
         </DialogHeader>
         {selectedOrgForPlan && (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-2 md:grid-cols-4'}`}>
               {pricingPlans.map((plan) => (
                 <Card 
                   key={plan.id} 
@@ -44,10 +47,10 @@ export function PlanManagementDialog({
                 >
                   <CardContent className="p-4">
                     <div className="text-center">
-                      <h3 className="font-medium">{plan.name}</h3>
-                      <div className="text-sm text-gray-600 mt-2">
-                        <div>Vehicles: {plan.maxVehicles === -1 ? 'Unlimited' : plan.maxVehicles}</div>
-                        <div>Users: {plan.maxUsers === -1 ? 'Unlimited' : plan.maxUsers}</div>
+                      <h3 className="font-medium truncate">{plan.name}</h3>
+                      <div className="text-sm text-gray-600 mt-2 space-y-1">
+                        <div className="truncate">Vehicles: {plan.maxVehicles === -1 ? 'Unlimited' : plan.maxVehicles}</div>
+                        <div className="truncate">Users: {plan.maxUsers === -1 ? 'Unlimited' : plan.maxUsers}</div>
                       </div>
                       {selectedOrgForPlan.subscriptionTier === plan.id && (
                         <Badge className="mt-2">Current Plan</Badge>
