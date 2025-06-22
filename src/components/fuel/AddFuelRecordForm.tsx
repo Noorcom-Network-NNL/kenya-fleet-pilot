@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,10 +29,14 @@ export function AddFuelRecordForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submission started with data:', formData);
+    console.log('=== FUEL RECORD SUBMISSION STARTED ===');
+    console.log('Form data:', formData);
+    console.log('Available vehicles:', vehicles.length);
+    console.log('Available drivers:', drivers.length);
     
     // Validation
     if (!formData.vehicleId || !formData.driverId) {
+      console.log('Validation failed: Missing vehicle or driver');
       toast({
         title: "Validation Error",
         description: "Please select both vehicle and driver",
@@ -43,6 +46,7 @@ export function AddFuelRecordForm() {
     }
 
     if (!formData.fuelAmount || !formData.pricePerLiter || !formData.odometer || !formData.fuelStation) {
+      console.log('Validation failed: Missing required fields');
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields",
@@ -55,8 +59,11 @@ export function AddFuelRecordForm() {
     const pricePerLiter = parseFloat(formData.pricePerLiter);
     const odometer = parseInt(formData.odometer);
 
+    console.log('Parsed values:', { fuelAmount, pricePerLiter, odometer });
+
     // Additional validation
     if (isNaN(fuelAmount) || fuelAmount <= 0 || fuelAmount > 500) {
+      console.log('Validation failed: Invalid fuel amount');
       toast({
         title: "Validation Error",
         description: "Fuel amount must be between 0.1 and 500 liters",
@@ -66,6 +73,7 @@ export function AddFuelRecordForm() {
     }
 
     if (isNaN(pricePerLiter) || pricePerLiter <= 0 || pricePerLiter > 1000) {
+      console.log('Validation failed: Invalid price per liter');
       toast({
         title: "Validation Error",
         description: "Price per liter must be between 0.01 and 1000 KES",
@@ -75,6 +83,7 @@ export function AddFuelRecordForm() {
     }
 
     if (isNaN(odometer) || odometer < 0 || odometer > 9999999) {
+      console.log('Validation failed: Invalid odometer');
       toast({
         title: "Validation Error",
         description: "Please enter a valid odometer reading",
@@ -83,17 +92,26 @@ export function AddFuelRecordForm() {
       return;
     }
 
+    console.log('All validations passed');
     setLoading(true);
 
     try {
       const selectedVehicle = vehicles.find(v => v.id === formData.vehicleId);
       const selectedDriver = drivers.find(d => d.id === formData.driverId);
 
-      console.log('Selected vehicle:', selectedVehicle);
-      console.log('Selected driver:', selectedDriver);
+      console.log('Looking for vehicle with ID:', formData.vehicleId);
+      console.log('Looking for driver with ID:', formData.driverId);
+      console.log('Found vehicle:', selectedVehicle);
+      console.log('Found driver:', selectedDriver);
 
-      if (!selectedVehicle || !selectedDriver) {
-        throw new Error("Selected vehicle or driver not found");
+      if (!selectedVehicle) {
+        console.error('Vehicle not found with ID:', formData.vehicleId);
+        throw new Error("Selected vehicle not found. Please refresh the page and try again.");
+      }
+
+      if (!selectedDriver) {
+        console.error('Driver not found with ID:', formData.driverId);
+        throw new Error("Selected driver not found. Please refresh the page and try again.");
       }
 
       const fuelCost = fuelAmount * pricePerLiter;
@@ -111,9 +129,13 @@ export function AddFuelRecordForm() {
         date: new Date(formData.date)
       };
 
-      console.log('Adding fuel record with data:', recordData);
+      console.log('=== FINAL RECORD DATA ===');
+      console.log(JSON.stringify(recordData, null, 2));
+      console.log('=== CALLING addFuelRecord ===');
       
       await addFuelRecord(recordData);
+
+      console.log('=== RECORD ADDED SUCCESSFULLY ===');
 
       // Reset form
       setFormData({
@@ -132,16 +154,21 @@ export function AddFuelRecordForm() {
         description: "Fuel record added successfully",
       });
 
-      console.log('Fuel record added successfully');
     } catch (error: any) {
-      console.error('Error adding fuel record:', error);
+      console.error('=== ERROR OCCURRED ===');
+      console.error('Error type:', typeof error);
+      console.error('Error message:', error?.message);
+      console.error('Full error object:', error);
+      console.error('Error stack:', error?.stack);
+      
       toast({
         title: "Error",
-        description: error.message || "Failed to add fuel record. Please try again.",
+        description: error?.message || "Failed to add fuel record. Please try again.",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
+      console.log('=== SUBMISSION PROCESS COMPLETED ===');
     }
   };
 
