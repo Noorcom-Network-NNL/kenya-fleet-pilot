@@ -25,10 +25,11 @@ export function useCreateOrganization() {
       const orgId = await createOrganization({
         name: orgName,
         slug: orgName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-        description: `${orgName} Fleet Management`,
-        adminName,
-        adminEmail,
-        adminPassword
+        subscriptionTier: 'free' as const,
+        subscriptionStatus: 'trial' as const,
+        maxVehicles: 5,
+        maxUsers: 3,
+        features: ['basic_tracking', 'fuel_management']
       });
 
       // Then create the Firebase Auth user
