@@ -9,14 +9,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { FuelRecord } from "@/hooks/useFirebaseFuel";
 import { format } from "date-fns";
+import { Trash2 } from "lucide-react";
 
 interface FuelRecordsTableProps {
   fuelRecords: FuelRecord[];
+  onDeleteRecord: (id: string, vehicleRegNumber: string) => Promise<void>;
 }
 
-export function FuelRecordsTable({ fuelRecords }: FuelRecordsTableProps) {
+export function FuelRecordsTable({ fuelRecords, onDeleteRecord }: FuelRecordsTableProps) {
   if (fuelRecords.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -38,6 +41,7 @@ export function FuelRecordsTable({ fuelRecords }: FuelRecordsTableProps) {
             <TableHead>Total Cost</TableHead>
             <TableHead>Odometer</TableHead>
             <TableHead>Station</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -65,6 +69,16 @@ export function FuelRecordsTable({ fuelRecords }: FuelRecordsTableProps) {
               </TableCell>
               <TableCell>{record.odometer.toLocaleString()} km</TableCell>
               <TableCell>{record.fuelStation}</TableCell>
+              <TableCell>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => record.id && onDeleteRecord(record.id, record.vehicleRegNumber)}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
