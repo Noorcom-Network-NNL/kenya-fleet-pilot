@@ -5,7 +5,6 @@ import { OrganizationUserAuth } from '@/components/saas/OrganizationUserAuth';
 import { Button } from '@/components/ui/button';
 
 const Login = () => {
-  const [isSignup, setIsSignup] = useState(false);
   const [showOrgLogin, setShowOrgLogin] = useState(false);
 
   return (
@@ -27,8 +26,8 @@ const Login = () => {
         ) : (
           <div className="space-y-4">
             <LoginForm 
-              onToggleMode={() => setIsSignup(!isSignup)}
-              isSignup={isSignup}
+              onToggleMode={() => {}} // No longer used since signup is disabled
+              isSignup={false} // Always login mode
             />
             <div className="text-center">
               <Button 

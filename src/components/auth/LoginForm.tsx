@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 interface LoginFormProps {
@@ -17,7 +17,7 @@ export function LoginForm({ onToggleMode, isSignup }: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, signup } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -30,12 +30,7 @@ export function LoginForm({ onToggleMode, isSignup }: LoginFormProps) {
 
     setLoading(true);
     try {
-      if (isSignup) {
-        await signup(email, password);
-      } else {
-        await login(email, password);
-      }
-      
+      await login(email, password);
       console.log('Authentication successful, navigating to:', from);
       navigate(from, { replace: true });
     } catch (error) {
@@ -45,6 +40,7 @@ export function LoginForm({ onToggleMode, isSignup }: LoginFormProps) {
     setLoading(false);
   };
 
+  // Always show login form - no signup option for security
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
@@ -57,14 +53,9 @@ export function LoginForm({ onToggleMode, isSignup }: LoginFormProps) {
             <p className="text-xs text-gray-500">Fleet Management</p>
           </div>
         </div>
-        <CardTitle className="text-2xl">
-          {isSignup ? 'Create Account' : 'Welcome Back'}
-        </CardTitle>
+        <CardTitle className="text-2xl">Welcome Back</CardTitle>
         <p className="text-gray-600">
-          {isSignup 
-            ? 'Create an account to access the fleet management system'
-            : 'Sign in to your fleet management account'
-          }
+          Sign in to your fleet management account
         </p>
       </CardHeader>
       <CardContent>
@@ -97,19 +88,17 @@ export function LoginForm({ onToggleMode, isSignup }: LoginFormProps) {
             disabled={loading}
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSignup ? 'Create Account' : 'Sign In'}
+            Sign In
           </Button>
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={onToggleMode}
-              className="text-sm text-noorcom-600 hover:text-noorcom-700 underline"
-            >
-              {isSignup 
-                ? 'Already have an account? Sign in'
-                : "Don't have an account? Sign up"
-              }
-            </button>
+          
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5" />
+              <div className="text-sm text-blue-800">
+                <p className="font-medium">Account Access</p>
+                <p>New accounts must be created by your organization administrator. Contact your admin to get access.</p>
+              </div>
+            </div>
           </div>
         </form>
       </CardContent>
