@@ -4,12 +4,18 @@ import { Bell, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { OrganizationSelector } from "@/components/saas/OrganizationSelector";
+import { useCompanySettings } from "@/hooks/useCompanySettings";
 
 export function Header({ title }: { title: string }) {
+  const companySettings = useCompanySettings();
+
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
       <div className="flex items-center gap-4">
-        <h1 className="text-2xl font-bold text-noorcom-800">{title}</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-noorcom-800">{title}</h1>
+          <p className="text-sm text-gray-600">{companySettings.companyName}</p>
+        </div>
         <OrganizationSelector />
       </div>
       

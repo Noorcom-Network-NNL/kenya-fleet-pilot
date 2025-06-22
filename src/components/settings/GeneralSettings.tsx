@@ -53,9 +53,12 @@ export function GeneralSettings() {
     // Save to localStorage
     localStorage.setItem('generalSettings', JSON.stringify(data));
     
+    // Trigger custom event to notify other components
+    window.dispatchEvent(new CustomEvent('companySettingsUpdated'));
+    
     toast({
       title: "Settings Saved",
-      description: "General settings have been saved successfully.",
+      description: "General settings have been saved successfully and will be reflected across the application.",
     });
     
     console.log('General settings saved:', data);
