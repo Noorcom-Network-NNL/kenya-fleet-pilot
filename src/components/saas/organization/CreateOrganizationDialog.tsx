@@ -23,7 +23,7 @@ export function CreateOrganizationDialog({
   showCreateDialog,
   setShowCreateDialog
 }: CreateOrganizationDialogProps) {
-  const { createOrganization, currentOrganization, setCurrentOrganization } = useOrganizations();
+  const { createOrganization } = useOrganizations();
   const { addUser } = useFirebaseUsers();
   const { toast } = useToast();
   const { currentUser } = useAuth();
@@ -55,10 +55,6 @@ export function CreateOrganizationDialog({
 
     setLoading(true);
     
-    // Store the current organization context for super admin
-    const previousOrganization = currentOrganization;
-    const isSuperAdmin = currentUser?.email === SUPER_ADMIN_EMAIL;
-    
     try {
       const slug = newOrgName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
       
@@ -86,11 +82,6 @@ export function CreateOrganizationDialog({
           };
           
           await addUser(adminUserData);
-          
-          // Restore super admin's previous context (should be null)
-          if (isSuperAdmin) {
-            setCurrentOrganization(previousOrganization);
-          }
           
           toast({
             title: "Organization Created",
@@ -131,6 +122,15 @@ export function CreateOrganizationDialog({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancel = () => {
+    setNewOrgName('');
+    setAdminName('');
+    setAdminEmail('');
+    setAdminPassword('');
+    setShowPassword(false);
+    setShowCreateDialog(false);
   };
 
   return (
@@ -213,7 +213,7 @@ export function CreateOrganizationDialog({
           </div>
           
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+            <Button variant="outline" onClick={handleCancel} disabled={loading}>
               Cancel
             </Button>
             <Button 

@@ -84,10 +84,16 @@ export function OrganizationSelector() {
 
   if (organizations.length === 0) {
     return (
-      <CreateOrganizationDialog
-        showCreateDialog={true}
-        setShowCreateDialog={() => {}}
-      />
+      <div className="space-y-4">
+        <div className="text-center py-8">
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Organizations Found</h3>
+          <p className="text-gray-600 mb-4">Create your first organization to get started.</p>
+          <CreateOrganizationDialog
+            showCreateDialog={showCreateDialog}
+            setShowCreateDialog={setShowCreateDialog}
+          />
+        </div>
+      </div>
     );
   }
 

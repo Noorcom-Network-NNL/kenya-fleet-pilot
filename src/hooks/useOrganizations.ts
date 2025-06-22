@@ -36,6 +36,8 @@ export function useOrganizations() {
       return;
     }
 
+    const isSuperAdmin = currentUser.email === SUPER_ADMIN_EMAIL;
+
     try {
       const unsubscribe = OrganizationService.subscribeToUserOrganizations(
         currentUser.uid,
@@ -43,10 +45,17 @@ export function useOrganizations() {
           setOrganizations(orgsData);
           
           // Only set current organization for non-super admin users
-          if (currentUser.email !== SUPER_ADMIN_EMAIL && orgsData.length > 0 && !currentOrganization) {
+          if (!isSuperAdmin && orgsData.length > 0 && !currentOrganization) {
             console.log('Setting current organization to first in list for regular user');
             setCurrentOrganization(orgsData[0]);
           }
+          
+          // For super admin, ensure currentOrganization stays null
+          if (isSuperAdmin && currentOrganization !== null) {
+            console.log('Resetting super admin organization context to null');
+            setCurrentOrganization(null);
+          }
+          
           setLoading(false);
         },
         (error) => {
@@ -86,7 +95,7 @@ export function useOrganizations() {
       });
       setLoading(false);
     }
-  }, [currentUser, toast, currentOrganization]);
+  }, [currentUser, toast]);
 
   const createOrganization = async (orgData: CreateOrganizationData) => {
     if (!currentUser) throw new Error('User not authenticated');
@@ -105,12 +114,13 @@ export function useOrganizations() {
         description: "Organization created successfully",
       });
       
-      // Don't switch context for super admin - they should stay in management view
-      if (!isSuperAdmin) {
-        // For regular users, they might want to switch to the new org
-        console.log('Regular user created organization, allowing context switch');
-      } else {
-        console.log('Super admin created organization, maintaining management context');
+      // Super admin should never switch organization context
+      if (isSuperAdmin) {
+        console.log('Super admin created organization, maintaining null context');
+        // Explicitly ensure currentOrganization remains null for super admin
+        if (currentOrganization !== null) {
+          setCurrentOrganization(null);
+        }
       }
       
       return orgId;
