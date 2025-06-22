@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,60 +6,164 @@ import { PricingCard, PricingPlan } from './PricingCard';
 import { Crown, Calendar, Users, Car, AlertTriangle } from 'lucide-react';
 import { useOrganizations } from '@/hooks/useOrganizations';
 import { format } from 'date-fns';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-const pricingPlans: PricingPlan[] = [
-  {
-    id: 'free',
-    name: 'Free Trial',
-    price: 0,
-    period: 'month',
-    description: '14-day free trial',
-    features: ['Basic vehicle tracking', 'Up to 5 vehicles', 'Basic reporting', 'Email support'],
-    maxVehicles: 5,
-    maxUsers: 3,
-    buttonText: 'Current Trial'
-  },
-  {
-    id: 'basic',
-    name: 'Basic',
-    price: 3800,
-    period: 'month',
-    description: 'Perfect for small fleets',
-    features: ['Real-time tracking', 'Fuel management', 'Driver management', 'Basic analytics', 'Email support'],
-    maxVehicles: 25,
-    maxUsers: 10,
-    buttonText: 'Upgrade to Basic',
-    stripePriceId: 'price_basic_monthly'
-  },
-  {
-    id: 'premium',
-    name: 'Premium',
-    price: 10400,
-    period: 'month',
-    description: 'Best for growing businesses',
-    features: ['Everything in Basic', 'Advanced analytics', 'Maintenance scheduling', 'Geofencing', 'Priority support'],
-    maxVehicles: 100,
-    maxUsers: 50,
-    popular: true,
-    buttonText: 'Upgrade to Premium',
-    stripePriceId: 'price_premium_monthly'
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: 26000,
-    period: 'month',
-    description: 'For large organizations',
-    features: ['Everything in Premium', 'Custom integrations', 'API access', 'Dedicated support', 'Custom reporting'],
-    maxVehicles: -1,
-    maxUsers: 150,
-    buttonText: 'Contact Sales',
-    stripePriceId: 'price_enterprise_monthly'
-  }
-];
+const pricingPlans: Record<string, PricingPlan[]> = {
+  monthly: [
+    {
+      id: 'free',
+      name: 'Free Trial',
+      price: 0,
+      period: 'month',
+      description: '14-day free trial',
+      features: ['Basic vehicle tracking', 'Up to 5 vehicles', 'Basic reporting', 'Email support'],
+      maxVehicles: 5,
+      maxUsers: 3,
+      buttonText: 'Current Trial'
+    },
+    {
+      id: 'basic',
+      name: 'Basic',
+      price: 3800,
+      period: 'month',
+      description: 'Perfect for small fleets',
+      features: ['Real-time tracking', 'Fuel management', 'Driver management', 'Basic analytics', 'Email support'],
+      maxVehicles: 25,
+      maxUsers: 10,
+      buttonText: 'Upgrade to Basic',
+      stripePriceId: 'price_basic_monthly'
+    },
+    {
+      id: 'premium',
+      name: 'Premium',
+      price: 10400,
+      period: 'month',
+      description: 'Best for growing businesses',
+      features: ['Everything in Basic', 'Advanced analytics', 'Maintenance scheduling', 'Geofencing', 'Priority support'],
+      maxVehicles: 100,
+      maxUsers: 50,
+      popular: true,
+      buttonText: 'Upgrade to Premium',
+      stripePriceId: 'price_premium_monthly'
+    },
+    {
+      id: 'enterprise',
+      name: 'Enterprise',
+      price: 26000,
+      period: 'month',
+      description: 'For large organizations',
+      features: ['Everything in Premium', 'Custom integrations', 'API access', 'Dedicated support', 'Custom reporting'],
+      maxVehicles: -1,
+      maxUsers: 150,
+      buttonText: 'Contact Sales',
+      stripePriceId: 'price_enterprise_monthly'
+    }
+  ],
+  '6months': [
+    {
+      id: 'free',
+      name: 'Free Trial',
+      price: 0,
+      period: '6 months',
+      description: '14-day free trial',
+      features: ['Basic vehicle tracking', 'Up to 5 vehicles', 'Basic reporting', 'Email support'],
+      maxVehicles: 5,
+      maxUsers: 3,
+      buttonText: 'Current Trial'
+    },
+    {
+      id: 'basic',
+      name: 'Basic',
+      price: 20520, // 3800 * 6 * 0.9 (10% discount)
+      period: '6 months',
+      description: 'Perfect for small fleets - Save 10%',
+      features: ['Real-time tracking', 'Fuel management', 'Driver management', 'Basic analytics', 'Email support'],
+      maxVehicles: 25,
+      maxUsers: 10,
+      buttonText: 'Upgrade to Basic',
+      stripePriceId: 'price_basic_6months'
+    },
+    {
+      id: 'premium',
+      name: 'Premium',
+      price: 56160, // 10400 * 6 * 0.9 (10% discount)
+      period: '6 months',
+      description: 'Best for growing businesses - Save 10%',
+      features: ['Everything in Basic', 'Advanced analytics', 'Maintenance scheduling', 'Geofencing', 'Priority support'],
+      maxVehicles: 100,
+      maxUsers: 50,
+      popular: true,
+      buttonText: 'Upgrade to Premium',
+      stripePriceId: 'price_premium_6months'
+    },
+    {
+      id: 'enterprise',
+      name: 'Enterprise',
+      price: 140400, // 26000 * 6 * 0.9 (10% discount)
+      period: '6 months',
+      description: 'For large organizations - Save 10%',
+      features: ['Everything in Premium', 'Custom integrations', 'API access', 'Dedicated support', 'Custom reporting'],
+      maxVehicles: -1,
+      maxUsers: 150,
+      buttonText: 'Contact Sales',
+      stripePriceId: 'price_enterprise_6months'
+    }
+  ],
+  yearly: [
+    {
+      id: 'free',
+      name: 'Free Trial',
+      price: 0,
+      period: 'year',
+      description: '14-day free trial',
+      features: ['Basic vehicle tracking', 'Up to 5 vehicles', 'Basic reporting', 'Email support'],
+      maxVehicles: 5,
+      maxUsers: 3,
+      buttonText: 'Current Trial'
+    },
+    {
+      id: 'basic',
+      name: 'Basic',
+      price: 36480, // 3800 * 12 * 0.8 (20% discount)
+      period: 'year',
+      description: 'Perfect for small fleets - Save 20%',
+      features: ['Real-time tracking', 'Fuel management', 'Driver management', 'Basic analytics', 'Email support'],
+      maxVehicles: 25,
+      maxUsers: 10,
+      buttonText: 'Upgrade to Basic',
+      stripePriceId: 'price_basic_yearly'
+    },
+    {
+      id: 'premium',
+      name: 'Premium',
+      price: 99840, // 10400 * 12 * 0.8 (20% discount)
+      period: 'year',
+      description: 'Best for growing businesses - Save 20%',
+      features: ['Everything in Basic', 'Advanced analytics', 'Maintenance scheduling', 'Geofencing', 'Priority support'],
+      maxVehicles: 100,
+      maxUsers: 50,
+      popular: true,
+      buttonText: 'Upgrade to Premium',
+      stripePriceId: 'price_premium_yearly'
+    },
+    {
+      id: 'enterprise',
+      name: 'Enterprise',
+      price: 249600, // 26000 * 12 * 0.8 (20% discount)
+      period: 'year',
+      description: 'For large organizations - Save 20%',
+      features: ['Everything in Premium', 'Custom integrations', 'API access', 'Dedicated support', 'Custom reporting'],
+      maxVehicles: -1,
+      maxUsers: 150,
+      buttonText: 'Contact Sales',
+      stripePriceId: 'price_enterprise_yearly'
+    }
+  ]
+};
 
 export function SubscriptionManagement() {
   const [loading, setLoading] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState('monthly');
   const { currentOrganization, updateOrganization } = useOrganizations();
 
   const handlePlanSelect = async (plan: PricingPlan) => {
@@ -176,17 +279,55 @@ export function SubscriptionManagement() {
           <p className="text-gray-600">Select the plan that best fits your fleet management needs</p>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {pricingPlans.map((plan) => (
-              <PricingCard
-                key={plan.id}
-                plan={plan}
-                onSelect={handlePlanSelect}
-                currentPlan={currentOrganization?.subscriptionTier}
-                loading={loading}
-              />
-            ))}
-          </div>
+          <Tabs value={selectedPeriod} onValueChange={setSelectedPeriod} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsTrigger value="monthly">Monthly</TabsTrigger>
+              <TabsTrigger value="6months">6 Months <Badge variant="secondary" className="ml-1 text-xs">Save 10%</Badge></TabsTrigger>
+              <TabsTrigger value="yearly">Yearly <Badge variant="secondary" className="ml-1 text-xs">Save 20%</Badge></TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="monthly">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {pricingPlans.monthly.map((plan) => (
+                  <PricingCard
+                    key={plan.id}
+                    plan={plan}
+                    onSelect={handlePlanSelect}
+                    currentPlan={currentOrganization?.subscriptionTier}
+                    loading={loading}
+                  />
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="6months">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {pricingPlans['6months'].map((plan) => (
+                  <PricingCard
+                    key={plan.id}
+                    plan={plan}
+                    onSelect={handlePlanSelect}
+                    currentPlan={currentOrganization?.subscriptionTier}
+                    loading={loading}
+                  />
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="yearly">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {pricingPlans.yearly.map((plan) => (
+                  <PricingCard
+                    key={plan.id}
+                    plan={plan}
+                    onSelect={handlePlanSelect}
+                    currentPlan={currentOrganization?.subscriptionTier}
+                    loading={loading}
+                  />
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 

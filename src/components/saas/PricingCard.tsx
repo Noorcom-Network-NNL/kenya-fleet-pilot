@@ -9,7 +9,7 @@ export interface PricingPlan {
   id: string;
   name: string;
   price: number;
-  period: 'month' | 'year';
+  period: 'month' | 'year' | '6 months';
   description: string;
   features: string[];
   maxVehicles: number;
@@ -26,9 +26,21 @@ interface PricingCardProps {
   loading?: boolean;
 }
 
-const formatKESPrice = (price: number): string => {
+const formatKESPrice = (price: number, period: string): string => {
   if (price === 0) return 'Free';
-  return `KES ${price.toLocaleString('en-KE')}`;
+  
+  const formattedPrice = `KES ${price.toLocaleString('en-KE')}`;
+  
+  // Show per-month equivalent for longer periods
+  if (period === '6 months') {
+    const monthlyEquivalent = Math.round(price / 6);
+    return `${formattedPrice} (KES ${monthlyEquivalent.toLocaleString('en-KE')}/month)`;
+  } else if (period === 'year') {
+    const monthlyEquivalent = Math.round(price / 12);
+    return `${formattedPrice} (KES ${monthlyEquivalent.toLocaleString('en-KE')}/month)`;
+  }
+  
+  return formattedPrice;
 };
 
 export function PricingCard({ plan, onSelect, currentPlan, loading }: PricingCardProps) {
@@ -48,7 +60,7 @@ export function PricingCard({ plan, onSelect, currentPlan, loading }: PricingCar
       <CardHeader className="text-center">
         <CardTitle className="text-xl">{plan.name}</CardTitle>
         <div className="mt-2">
-          <span className="text-3xl font-bold">{formatKESPrice(plan.price)}</span>
+          <span className="text-3xl font-bold">{formatKESPrice(plan.price, plan.period)}</span>
           {plan.price > 0 && <span className="text-gray-500">/{plan.period}</span>}
         </div>
         <p className="text-sm text-gray-600">{plan.description}</p>
