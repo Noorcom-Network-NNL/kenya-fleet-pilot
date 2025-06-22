@@ -14,9 +14,14 @@ import { useToast } from '@/hooks/use-toast';
 
 interface OrganizationUserAuthProps {
   preselectedOrg?: any;
+  customization?: {
+    logoUrl?: string;
+    primaryColor?: string;
+    welcomeMessage?: string;
+  };
 }
 
-export function OrganizationUserAuth({ preselectedOrg }: OrganizationUserAuthProps) {
+export function OrganizationUserAuth({ preselectedOrg, customization = {} }: OrganizationUserAuthProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [selectedOrgId, setSelectedOrgId] = useState('');
@@ -71,18 +76,25 @@ export function OrganizationUserAuth({ preselectedOrg }: OrganizationUserAuthPro
     setLoading(false);
   };
 
+  const primaryColor = customization.primaryColor || '#6366f1';
+
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <div className="w-8 h-8 rounded-md bg-noorcom-600 flex items-center justify-center text-white font-bold">
-            N
+        {!preselectedOrg && (
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <div 
+              className="w-8 h-8 rounded-md flex items-center justify-center text-white font-bold"
+              style={{ backgroundColor: primaryColor }}
+            >
+              N
+            </div>
+            <div>
+              <h1 className="text-xl font-bold" style={{ color: primaryColor }}>Noorcom</h1>
+              <p className="text-xs text-gray-500">Fleet Management</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold text-noorcom-800">Noorcom</h1>
-            <p className="text-xs text-gray-500">Fleet Management</p>
-          </div>
-        </div>
+        )}
         <CardTitle className="text-2xl">
           {preselectedOrg ? 'Welcome Back' : 'Organization Login'}
         </CardTitle>
@@ -160,7 +172,8 @@ export function OrganizationUserAuth({ preselectedOrg }: OrganizationUserAuthPro
 
           <Button 
             type="submit" 
-            className="w-full bg-noorcom-600 hover:bg-noorcom-700"
+            className="w-full text-white hover:opacity-90"
+            style={{ backgroundColor: primaryColor }}
             disabled={loading || !selectedUser}
           >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
