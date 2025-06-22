@@ -12,7 +12,7 @@ import { useFirebaseFuel } from "@/hooks/useFirebaseFuel";
 import { Car, User, Fuel, MapPin } from "lucide-react";
 
 const Dashboard = () => {
-  const { vehicles } = useFirebaseVehicles();
+  const { vehicles, loading: vehiclesLoading } = useFirebaseVehicles();
   const { drivers } = useFirebaseDrivers();
   const { fuelRecords } = useFirebaseFuel();
 
@@ -29,29 +29,25 @@ const Dashboard = () => {
           <StatCard
             title="Total Vehicles"
             value={totalVehicles.toString()}
-            change="+100% vs last month"
-            changeType="positive"
+            trend={{ value: 100, positive: true }}
             icon={<Car className="h-4 w-4" />}
           />
           <StatCard
             title="Active Drivers"
             value={activeDrivers.toString()}
-            change="+12% vs last month"
-            changeType="positive"
+            trend={{ value: 12, positive: true }}
             icon={<User className="h-4 w-4" />}
           />
           <StatCard
             title="Fuel Used (L)"
             value={totalFuelUsed.toLocaleString()}
-            change="-100% vs last month"
-            changeType="negative"
+            trend={{ value: 100, positive: false }}
             icon={<Fuel className="h-4 w-4" />}
           />
           <StatCard
             title="KM Driven"
             value={totalKmDriven.toString()}
-            change="+0% vs last month"
-            changeType="neutral"
+            trend={{ value: 0, positive: true }}
             icon={<MapPin className="h-4 w-4" />}
           />
         </div>
@@ -64,8 +60,8 @@ const Dashboard = () => {
 
         {/* Vehicle List and Alerts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <VehicleList vehicles={vehicles} />
-          <RecentAlerts />
+          <VehicleList vehicles={vehicles} loading={vehiclesLoading} />
+          <RecentAlerts vehicles={vehicles} />
         </div>
       </div>
     </MainLayout>
