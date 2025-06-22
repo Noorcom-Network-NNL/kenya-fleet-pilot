@@ -37,19 +37,30 @@ const NavItem = ({ to, icon, label, active }: NavItemProps) => (
   </Link>
 );
 
+const SUPER_ADMIN_EMAIL = 'admin@noorcomfleet.co.ke';
+
 export function Sidebar() {
   const location = useLocation();
   const { logout, currentUser } = useAuth();
   
-  const navItems = [
+  // Base navigation items for all users
+  const baseNavItems = [
     { to: "/", icon: <ChartBar size={18} />, label: "Dashboard" },
     { to: "/vehicles", icon: <Car size={18} />, label: "Vehicles" },
     { to: "/drivers", icon: <User size={18} />, label: "Drivers" },
     { to: "/fuel", icon: <Fuel size={18} />, label: "Fuel" },
     { to: "/tracking", icon: <MapPin size={18} />, label: "Tracking" },
-    { to: "/organizations", icon: <Building size={18} />, label: "Organizations" },
     { to: "/settings", icon: <Settings size={18} />, label: "Settings" },
   ];
+
+  // Add Organizations tab only for super admin
+  const navItems = currentUser?.email === SUPER_ADMIN_EMAIL 
+    ? [
+        ...baseNavItems.slice(0, 5), // Dashboard through Tracking
+        { to: "/organizations", icon: <Building size={18} />, label: "Organizations" },
+        ...baseNavItems.slice(5) // Settings
+      ]
+    : baseNavItems;
 
   const handleLogout = async () => {
     try {
