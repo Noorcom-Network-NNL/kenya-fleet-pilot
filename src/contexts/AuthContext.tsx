@@ -31,6 +31,7 @@ export function useAuth() {
 // Helper function to get user-friendly error messages
 const getErrorMessage = (errorCode: string) => {
   switch (errorCode) {
+    case 'auth/invalid-credential':
     case 'auth/invalid-login-credentials':
     case 'auth/wrong-password':
     case 'auth/user-not-found':
