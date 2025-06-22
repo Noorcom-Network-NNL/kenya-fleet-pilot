@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Building, Plus, Eye, EyeOff, Trash2, BarChart3, Users, Calendar } from 'lucide-react';
+import { Building, Plus, Eye, EyeOff, Trash2, BarChart3, Users, Calendar, Crown, Settings } from 'lucide-react';
 import { useOrganizations } from '@/hooks/useOrganizations';
 import { useFirebaseUsers } from '@/hooks/useFirebaseUsers';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
@@ -14,13 +13,22 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
+const pricingPlans = [
+  { id: 'free', name: 'Free Trial', maxVehicles: 5, maxUsers: 3 },
+  { id: 'basic', name: 'Basic', maxVehicles: 25, maxUsers: 10 },
+  { id: 'premium', name: 'Premium', maxVehicles: 100, maxUsers: 50 },
+  { id: 'enterprise', name: 'Enterprise', maxVehicles: -1, maxUsers: -1 }
+];
+
 export function OrganizationSelector() {
-  const { organizations, currentOrganization, setCurrentOrganization, createOrganization, deleteOrganization } = useOrganizations();
+  const { organizations, currentOrganization, setCurrentOrganization, createOrganization, deleteOrganization, updateOrganization } = useOrganizations();
   const { addUser } = useFirebaseUsers();
   const { toast } = useToast();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showMetricsDialog, setShowMetricsDialog] = useState(false);
+  const [showPlanDialog, setShowPlanDialog] = useState(false);
   const [selectedOrgForMetrics, setSelectedOrgForMetrics] = useState(null);
+  const [selectedOrgForPlan, setSelectedOrgForPlan] = useState(null);
   const [newOrgName, setNewOrgName] = useState('');
   const [adminName, setAdminName] = useState('');
   const [adminEmail, setAdminEmail] = useState('');
@@ -51,7 +59,6 @@ export function OrganizationSelector() {
     try {
       const slug = newOrgName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
       
-      // First create the organization
       const orgId = await createOrganization({
         name: newOrgName,
         slug,
@@ -62,13 +69,10 @@ export function OrganizationSelector() {
         features: ['basic_tracking', 'fuel_management']
       });
       
-      // Then create the Firebase Auth user and add to Firestore
       if (orgId) {
         try {
-          // Create Firebase Auth user
           await createUserWithEmailAndPassword(auth, adminEmail, adminPassword);
           
-          // Add user to Firestore with organization context
           const adminUserData = {
             name: adminName,
             email: adminEmail,
@@ -104,7 +108,6 @@ export function OrganizationSelector() {
         }
       }
       
-      // Reset form
       setNewOrgName('');
       setAdminName('');
       setAdminEmail('');
@@ -131,7 +134,6 @@ export function OrganizationSelector() {
           description: `${orgName} has been successfully deleted.`,
         });
         
-        // If the deleted org was the current one, reset current organization
         if (currentOrganization?.id === orgId) {
           setCurrentOrganization(null);
         }
@@ -149,6 +151,42 @@ export function OrganizationSelector() {
   const handleViewMetrics = (org) => {
     setSelectedOrgForMetrics(org);
     setShowMetricsDialog(true);
+  };
+
+  const handleManagePlan = (org) => {
+    setSelectedOrgForPlan(org);
+    setShowPlanDialog(true);
+  };
+
+  const handlePlanUpdate = async (planId: string) => {
+    if (!selectedOrgForPlan) return;
+    
+    const selectedPlan = pricingPlans.find(plan => plan.id === planId);
+    if (!selectedPlan) return;
+
+    try {
+      await updateOrganization(selectedOrgForPlan.id, {
+        subscriptionTier: planId as any,
+        subscriptionStatus: planId === 'free' ? 'trial' : 'active',
+        maxVehicles: selectedPlan.maxVehicles,
+        maxUsers: selectedPlan.maxUsers
+      });
+
+      toast({
+        title: "Plan Updated",
+        description: `${selectedOrgForPlan.name} has been updated to ${selectedPlan.name} plan.`,
+      });
+      
+      setShowPlanDialog(false);
+      setSelectedOrgForPlan(null);
+    } catch (error) {
+      console.error('Error updating plan:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update organization plan",
+        variant: "destructive",
+      });
+    }
   };
 
   const getSubscriptionBadgeColor = (status: string) => {
@@ -393,6 +431,15 @@ export function OrganizationSelector() {
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={() => handleManagePlan(org)}
+                  className="flex items-center gap-2"
+                >
+                  <Crown className="h-4 w-4" />
+                  Manage Plan
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => handleViewMetrics(org)}
                   className="flex items-center gap-2"
                 >
@@ -420,6 +467,47 @@ export function OrganizationSelector() {
           </Card>
         ))}
       </div>
+
+      {/* Plan Management Dialog */}
+      <Dialog open={showPlanDialog} onOpenChange={setShowPlanDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Manage Plan - {selectedOrgForPlan?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedOrgForPlan && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {pricingPlans.map((plan) => (
+                  <Card 
+                    key={plan.id} 
+                    className={`cursor-pointer transition-colors ${
+                      selectedOrgForPlan.subscriptionTier === plan.id 
+                        ? 'ring-2 ring-blue-500 bg-blue-50' 
+                        : 'hover:bg-gray-50'
+                    }`}
+                    onClick={() => handlePlanUpdate(plan.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="text-center">
+                        <h3 className="font-medium">{plan.name}</h3>
+                        <div className="text-sm text-gray-600 mt-2">
+                          <div>Vehicles: {plan.maxVehicles === -1 ? 'Unlimited' : plan.maxVehicles}</div>
+                          <div>Users: {plan.maxUsers === -1 ? 'Unlimited' : plan.maxUsers}</div>
+                        </div>
+                        {selectedOrgForPlan.subscriptionTier === plan.id && (
+                          <Badge className="mt-2">Current Plan</Badge>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Organization Metrics Dialog */}
       <Dialog open={showMetricsDialog} onOpenChange={setShowMetricsDialog}>
