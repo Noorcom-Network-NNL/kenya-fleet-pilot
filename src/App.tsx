@@ -13,6 +13,7 @@ import Drivers from "./pages/Drivers";
 import Fuel from "./pages/Fuel";
 import Maintenance from "./pages/Maintenance";
 import Tracking from "./pages/Tracking";
+import Organizations from "./pages/Organizations";
 import Settings from "./pages/Settings";
 import Subscription from "./pages/Subscription";
 import Login from "./pages/Login";
@@ -58,6 +59,11 @@ const App = () => (
             <Route path="/tracking" element={
               <ProtectedRoute>
                 <Tracking />
+              </ProtectedRoute>
+            } />
+            <Route path="/organizations" element={
+              <ProtectedRoute>
+                <Organizations />
               </ProtectedRoute>
             } />
             <Route path="/settings" element={

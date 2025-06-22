@@ -9,6 +9,7 @@ import {
   ChartBar,
   Settings,
   LogOut,
+  Building,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -46,6 +47,7 @@ export function Sidebar() {
     { to: "/drivers", icon: <User size={18} />, label: "Drivers" },
     { to: "/fuel", icon: <Fuel size={18} />, label: "Fuel" },
     { to: "/tracking", icon: <MapPin size={18} />, label: "Tracking" },
+    { to: "/organizations", icon: <Building size={18} />, label: "Organizations" },
     { to: "/settings", icon: <Settings size={18} />, label: "Settings" },
   ];
 
