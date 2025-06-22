@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, where } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useOrganizations } from '@/hooks/useOrganizations';
@@ -23,38 +23,85 @@ export function useFirebaseUsers() {
   const { currentOrganization } = useOrganizations();
 
   useEffect(() => {
+    console.log('useFirebaseUsers effect triggered');
+    console.log('Current organization:', currentOrganization);
+
     if (!currentOrganization) {
+      console.log('No current organization, setting empty users');
       setUsers([]);
       setLoading(false);
       return;
     }
 
-    const q = query(
-      collection(db, 'users'), 
-      where('organizationId', '==', currentOrganization.id),
-      orderBy('createdAt', 'desc')
-    );
-    
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const usersData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || new Date(),
-      })) as User[];
-      
-      setUsers(usersData);
-      setLoading(false);
-    }, (error) => {
-      console.error('Error fetching users:', error);
+    if (!db) {
+      console.error('Firebase db is not initialized');
       toast({
-        title: "Error",
-        description: "Failed to fetch users",
+        title: "Configuration Error",
+        description: "Database connection not configured properly",
         variant: "destructive",
       });
       setLoading(false);
-    });
+      return;
+    }
 
-    return () => unsubscribe();
+    try {
+      // Simplified query without orderBy to avoid composite index requirement
+      const q = query(
+        collection(db, 'users'), 
+        where('organizationId', '==', currentOrganization.id)
+      );
+      
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        console.log('Users snapshot received, docs count:', snapshot.docs.length);
+        
+        const usersData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate() || new Date(),
+        })) as User[];
+        
+        // Sort by createdAt in JavaScript instead of using Firestore orderBy
+        usersData.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+        
+        console.log('Processed users:', usersData);
+        setUsers(usersData);
+        setLoading(false);
+      }, (error) => {
+        console.error('Firestore error details:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        
+        let errorMessage = "Failed to fetch users";
+        
+        if (error.code === 'permission-denied') {
+          errorMessage = "Permission denied. Please check your account access.";
+        } else if (error.code === 'unavailable') {
+          errorMessage = "Database temporarily unavailable. Please try again.";
+        } else if (error.code === 'failed-precondition') {
+          errorMessage = "Database index missing. Please contact support.";
+        }
+        
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        setLoading(false);
+      });
+
+      return () => {
+        console.log('Cleaning up users Firestore listener');
+        unsubscribe();
+      };
+    } catch (error) {
+      console.error('Error setting up users Firestore listener:', error);
+      toast({
+        title: "Setup Error",
+        description: "Failed to initialize users data",
+        variant: "destructive",
+      });
+      setLoading(false);
+    }
   }, [toast, currentOrganization]);
 
   const addUser = async (userData: Omit<User, 'id' | 'createdAt'>) => {
@@ -68,6 +115,7 @@ export function useFirebaseUsers() {
     }
 
     try {
+      console.log('Adding user:', userData);
       await addDoc(collection(db, 'users'), {
         ...userData,
         organizationId: currentOrganization.id,
@@ -90,6 +138,7 @@ export function useFirebaseUsers() {
 
   const updateUser = async (id: string, userData: Partial<User>) => {
     try {
+      console.log('Updating user:', id, userData);
       await updateDoc(doc(db, 'users', id), userData);
       
       toast({
@@ -108,6 +157,7 @@ export function useFirebaseUsers() {
 
   const deleteUser = async (id: string) => {
     try {
+      console.log('Deleting user:', id);
       await deleteDoc(doc(db, 'users', id));
       
       toast({
