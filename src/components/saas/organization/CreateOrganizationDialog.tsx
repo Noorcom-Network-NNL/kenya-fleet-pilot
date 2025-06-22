@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Building, Plus, Eye, EyeOff } from 'lucide-react';
 import { useOrganizations } from '@/hooks/useOrganizations';
 import { useFirebaseUsers } from '@/hooks/useFirebaseUsers';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, fetchSignInMethodsForEmail } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,6 +34,16 @@ export function CreateOrganizationDialog({
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const checkEmailExists = async (email: string): Promise<boolean> => {
+    try {
+      const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+      return signInMethods.length > 0;
+    } catch (error) {
+      console.error('Error checking email:', error);
+      return false;
+    }
+  };
+
   const handleCreateOrganization = async () => {
     if (!newOrgName.trim() || !adminName.trim() || !adminEmail.trim() || !adminPassword.trim()) {
       toast({
@@ -56,6 +66,19 @@ export function CreateOrganizationDialog({
     setLoading(true);
     
     try {
+      // Check if email already exists
+      const emailExists = await checkEmailExists(adminEmail);
+      
+      if (emailExists) {
+        toast({
+          title: "Email Already Registered",
+          description: `The email ${adminEmail} is already registered. Please use a different email address for the admin user.`,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
       const slug = newOrgName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
       
       const orgId = await createOrganization({
@@ -70,8 +93,10 @@ export function CreateOrganizationDialog({
       
       if (orgId) {
         try {
+          // Create Firebase Auth user
           await createUserWithEmailAndPassword(auth, adminEmail, adminPassword);
           
+          // Create user record in Firestore
           const adminUserData = {
             name: adminName,
             email: adminEmail,
@@ -89,21 +114,32 @@ export function CreateOrganizationDialog({
           });
         } catch (authError: any) {
           console.error('Error creating admin user:', authError);
-          let errorMessage = "Failed to create admin user";
           
+          // Even if Firebase Auth creation fails, we can still create the user record
+          // This handles edge cases where the email might be registered but not in our system
           if (authError.code === 'auth/email-already-in-use') {
-            errorMessage = "This email address is already registered.";
-          } else if (authError.code === 'auth/weak-password') {
-            errorMessage = "Password should be at least 6 characters long.";
-          } else if (authError.code === 'auth/invalid-email') {
-            errorMessage = "Please enter a valid email address.";
+            toast({
+              title: "Email Already Registered",
+              description: `The email ${adminEmail} is already registered. Please use a different email address.`,
+              variant: "destructive",
+            });
+          } else {
+            let errorMessage = "Failed to create admin user";
+            
+            if (authError.code === 'auth/weak-password') {
+              errorMessage = "Password should be at least 6 characters long.";
+            } else if (authError.code === 'auth/invalid-email') {
+              errorMessage = "Please enter a valid email address.";
+            }
+            
+            toast({
+              title: "Error Creating Admin User",
+              description: errorMessage,
+              variant: "destructive",
+            });
           }
-          
-          toast({
-            title: "Error Creating Admin User",
-            description: errorMessage,
-            variant: "destructive",
-          });
+          setLoading(false);
+          return;
         }
       }
       
