@@ -6,6 +6,8 @@ import { db } from '@/lib/firebase';
 import { Organization, CreateOrganizationData } from '@/types/organization';
 import { OrganizationService } from '@/services/organizationService';
 
+const SUPER_ADMIN_EMAIL = 'admin@noorcomfleet.co.ke';
+
 export function useOrganizations() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(null);
@@ -40,8 +42,9 @@ export function useOrganizations() {
         (orgsData) => {
           setOrganizations(orgsData);
           
-          if (orgsData.length > 0 && !currentOrganization) {
-            console.log('Setting current organization to first in list');
+          // Only set current organization for non-super admin users
+          if (currentUser.email !== SUPER_ADMIN_EMAIL && orgsData.length > 0 && !currentOrganization) {
+            console.log('Setting current organization to first in list for regular user');
             setCurrentOrganization(orgsData[0]);
           }
           setLoading(false);
