@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useOrganizations } from '@/hooks/useOrganizations';
 import { useToast } from '@/hooks/use-toast';
@@ -7,6 +6,7 @@ import { OrganizationCard } from './organization/OrganizationCard';
 import { CreateOrganizationDialog } from './organization/CreateOrganizationDialog';
 import { PlanManagementDialog } from './organization/PlanManagementDialog';
 import { OrganizationMetricsDialog } from './organization/OrganizationMetricsDialog';
+import { ClientDetailsDialog } from './organization/ClientDetailsDialog';
 import { pricingPlans } from './organization/constants';
 
 export function OrganizationSelector() {
@@ -15,8 +15,10 @@ export function OrganizationSelector() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showMetricsDialog, setShowMetricsDialog] = useState(false);
   const [showPlanDialog, setShowPlanDialog] = useState(false);
+  const [showClientDialog, setShowClientDialog] = useState(false);
   const [selectedOrgForMetrics, setSelectedOrgForMetrics] = useState<Organization | null>(null);
   const [selectedOrgForPlan, setSelectedOrgForPlan] = useState<Organization | null>(null);
+  const [selectedOrgForClient, setSelectedOrgForClient] = useState<Organization | null>(null);
 
   const handleDeleteOrganization = async (orgId: string, orgName: string) => {
     if (window.confirm(`Are you sure you want to delete "${orgName}"? This action cannot be undone and will remove all associated data.`)) {
@@ -44,6 +46,11 @@ export function OrganizationSelector() {
   const handleViewMetrics = (org: Organization) => {
     setSelectedOrgForMetrics(org);
     setShowMetricsDialog(true);
+  };
+
+  const handleViewClientDetails = (org: Organization) => {
+    setSelectedOrgForClient(org);
+    setShowClientDialog(true);
   };
 
   const handleManagePlan = (org: Organization) => {
@@ -120,11 +127,19 @@ export function OrganizationSelector() {
             currentOrganization={currentOrganization}
             onManagePlan={handleManagePlan}
             onViewMetrics={handleViewMetrics}
+            onViewClientDetails={handleViewClientDetails}
             onSwitchTo={setCurrentOrganization}
             onDelete={handleDeleteOrganization}
           />
         ))}
       </div>
+
+      {/* Client Details Dialog */}
+      <ClientDetailsDialog
+        showClientDialog={showClientDialog}
+        setShowClientDialog={setShowClientDialog}
+        selectedOrgForClient={selectedOrgForClient}
+      />
 
       {/* Plan Management Dialog */}
       <PlanManagementDialog

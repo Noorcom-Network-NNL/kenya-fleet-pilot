@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Building, Users, Calendar, Crown, BarChart3, Trash2, MoreHorizontal } from 'lucide-react';
+import { Building, Users, Calendar, Crown, BarChart3, Trash2, MoreHorizontal, FileText } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Organization } from '@/types/organization';
 import { getSubscriptionBadgeColor } from './constants';
@@ -14,6 +14,7 @@ interface OrganizationCardProps {
   currentOrganization: Organization | null;
   onManagePlan: (org: Organization) => void;
   onViewMetrics: (org: Organization) => void;
+  onViewClientDetails: (org: Organization) => void;
   onSwitchTo: (org: Organization) => void;
   onDelete: (orgId: string, orgName: string) => void;
 }
@@ -23,6 +24,7 @@ export function OrganizationCard({
   currentOrganization,
   onManagePlan,
   onViewMetrics,
+  onViewClientDetails,
   onSwitchTo,
   onDelete
 }: OrganizationCardProps) {
@@ -68,6 +70,10 @@ export function OrganizationCard({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => onViewClientDetails(org)}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Client Details
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onManagePlan(org)}>
                   <Crown className="h-4 w-4 mr-2" />
                   Manage Plan
@@ -91,6 +97,16 @@ export function OrganizationCard({
             </DropdownMenu>
           ) : (
             <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onViewClientDetails(org)}
+                className="flex items-center gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                <span className="hidden xl:inline">Client Details</span>
+                <span className="xl:hidden">Details</span>
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
