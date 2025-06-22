@@ -6,7 +6,7 @@ import { OrganizationCard } from './organization/OrganizationCard';
 import { CreateOrganizationDialog } from './organization/CreateOrganizationDialog';
 import { PlanManagementDialog } from './organization/PlanManagementDialog';
 import { OrganizationMetricsDialog } from './organization/OrganizationMetricsDialog';
-import { ClientDetailsDialog } from './organization/ClientDetailsDialog';
+import { EditableClientDetailsDialog } from './organization/EditableClientDetailsDialog';
 import { pricingPlans } from './organization/constants';
 
 export function OrganizationSelector() {
@@ -135,10 +135,11 @@ export function OrganizationSelector() {
       </div>
 
       {/* Client Details Dialog */}
-      <ClientDetailsDialog
+      <EditableClientDetailsDialog
         showClientDialog={showClientDialog}
         setShowClientDialog={setShowClientDialog}
         selectedOrgForClient={selectedOrgForClient}
+        onUpdateOrganization={updateOrganization}
       />
 
       {/* Plan Management Dialog */}
