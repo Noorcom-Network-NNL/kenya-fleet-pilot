@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { OrganizationLoginPage } from "@/components/saas/OrganizationLoginPage";
 import Dashboard from "./pages/Dashboard";
 import Vehicles from "./pages/Vehicles";
 import Drivers from "./pages/Drivers";
@@ -28,6 +29,7 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/invite/:token" element={<InviteAccept />} />
+            <Route path="/:orgSlug/login" element={<OrganizationLoginPage />} />
             <Route path="/" element={
               <ProtectedRoute>
                 <Dashboard />

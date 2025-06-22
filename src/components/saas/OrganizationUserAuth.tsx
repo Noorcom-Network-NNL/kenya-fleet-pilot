@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,16 +12,27 @@ import { Loader2, Building, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
-export function OrganizationUserAuth() {
+interface OrganizationUserAuthProps {
+  preselectedOrg?: any;
+}
+
+export function OrganizationUserAuth({ preselectedOrg }: OrganizationUserAuthProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [selectedOrgId, setSelectedOrgId] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
-  const { organizations } = useOrganizations();
+  const { organizations, setCurrentOrganization } = useOrganizations();
   const { users } = useFirebaseUsers();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (preselectedOrg) {
+      setSelectedOrgId(preselectedOrg.id);
+      setCurrentOrganization(preselectedOrg);
+    }
+  }, [preselectedOrg, setCurrentOrganization]);
 
   // Get users for the selected organization
   const orgUsers = users.filter(user => user.organizationId === selectedOrgId);
@@ -72,38 +83,45 @@ export function OrganizationUserAuth() {
             <p className="text-xs text-gray-500">Fleet Management</p>
           </div>
         </div>
-        <CardTitle className="text-2xl">Organization Login</CardTitle>
+        <CardTitle className="text-2xl">
+          {preselectedOrg ? 'Welcome Back' : 'Organization Login'}
+        </CardTitle>
         <p className="text-gray-600">
-          Select your organization and sign in to access your fleet
+          {preselectedOrg 
+            ? `Sign in to access ${preselectedOrg.name} fleet`
+            : 'Select your organization and sign in to access your fleet'
+          }
         </p>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleLogin} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="organization">Organization</Label>
-            <Select onValueChange={setSelectedOrgId} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Select your organization">
-                  {selectedOrgId && organizations.find(org => org.id === selectedOrgId) && (
-                    <div className="flex items-center gap-2">
-                      <Building className="h-4 w-4" />
-                      {organizations.find(org => org.id === selectedOrgId)?.name}
-                    </div>
-                  )}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {organizations.map((org) => (
-                  <SelectItem key={org.id} value={org.id}>
-                    <div className="flex items-center gap-2">
-                      <Building className="h-4 w-4" />
-                      {org.name}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {!preselectedOrg && (
+            <div className="space-y-2">
+              <Label htmlFor="organization">Organization</Label>
+              <Select onValueChange={setSelectedOrgId} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select your organization">
+                    {selectedOrgId && organizations.find(org => org.id === selectedOrgId) && (
+                      <div className="flex items-center gap-2">
+                        <Building className="h-4 w-4" />
+                        {organizations.find(org => org.id === selectedOrgId)?.name}
+                      </div>
+                    )}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {organizations.map((org) => (
+                    <SelectItem key={org.id} value={org.id}>
+                      <div className="flex items-center gap-2">
+                        <Building className="h-4 w-4" />
+                        {org.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
