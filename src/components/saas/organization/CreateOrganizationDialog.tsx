@@ -66,10 +66,12 @@ export function CreateOrganizationDialog({
     setLoading(true);
     
     try {
-      // Check if email already exists
+      // Check if email already exists BEFORE creating organization
+      console.log('Checking if email exists:', adminEmail);
       const emailExists = await checkEmailExists(adminEmail);
       
       if (emailExists) {
+        console.log('Email already exists, aborting organization creation');
         toast({
           title: "Email Already Registered",
           description: `The email ${adminEmail} is already registered. Please use a different email address for the admin user.`,
@@ -79,23 +81,52 @@ export function CreateOrganizationDialog({
         return;
       }
 
-      const slug = newOrgName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      console.log('Email is available, proceeding with user creation');
       
-      const orgId = await createOrganization({
-        name: newOrgName,
-        slug,
-        subscriptionTier: 'free',
-        subscriptionStatus: 'trial',
-        maxVehicles: 5,
-        maxUsers: 3,
-        features: ['basic_tracking', 'fuel_management']
-      });
-      
-      if (orgId) {
-        try {
-          // Create Firebase Auth user
-          await createUserWithEmailAndPassword(auth, adminEmail, adminPassword);
-          
+      // Create Firebase Auth user FIRST, before creating organization
+      let userCreated = false;
+      try {
+        await createUserWithEmailAndPassword(auth, adminEmail, adminPassword);
+        userCreated = true;
+        console.log('Firebase user created successfully');
+      } catch (authError: any) {
+        console.error('Failed to create Firebase user:', authError);
+        
+        let errorMessage = "Failed to create admin user";
+        
+        if (authError.code === 'auth/email-already-in-use') {
+          errorMessage = `The email ${adminEmail} is already registered. Please use a different email address.`;
+        } else if (authError.code === 'auth/weak-password') {
+          errorMessage = "Password should be at least 6 characters long.";
+        } else if (authError.code === 'auth/invalid-email') {
+          errorMessage = "Please enter a valid email address.";
+        }
+        
+        toast({
+          title: "Error Creating Admin User",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return; // Don't create organization if user creation fails
+      }
+
+      // Only create organization if user was created successfully
+      if (userCreated) {
+        console.log('Creating organization after successful user creation');
+        const slug = newOrgName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+        
+        const orgId = await createOrganization({
+          name: newOrgName,
+          slug,
+          subscriptionTier: 'free',
+          subscriptionStatus: 'trial',
+          maxVehicles: 5,
+          maxUsers: 3,
+          features: ['basic_tracking', 'fuel_management']
+        });
+        
+        if (orgId) {
           // Create user record in Firestore
           const adminUserData = {
             name: adminName,
@@ -109,50 +140,23 @@ export function CreateOrganizationDialog({
           await addUser(adminUserData);
           
           toast({
-            title: "Organization Created",
+            title: "Organization Created Successfully",
             description: `${newOrgName} created successfully! Admin can now log in at /${slug}/login`,
           });
-        } catch (authError: any) {
-          console.error('Error creating admin user:', authError);
           
-          // Even if Firebase Auth creation fails, we can still create the user record
-          // This handles edge cases where the email might be registered but not in our system
-          if (authError.code === 'auth/email-already-in-use') {
-            toast({
-              title: "Email Already Registered",
-              description: `The email ${adminEmail} is already registered. Please use a different email address.`,
-              variant: "destructive",
-            });
-          } else {
-            let errorMessage = "Failed to create admin user";
-            
-            if (authError.code === 'auth/weak-password') {
-              errorMessage = "Password should be at least 6 characters long.";
-            } else if (authError.code === 'auth/invalid-email') {
-              errorMessage = "Please enter a valid email address.";
-            }
-            
-            toast({
-              title: "Error Creating Admin User",
-              description: errorMessage,
-              variant: "destructive",
-            });
-          }
-          setLoading(false);
-          return;
+          // Reset form and close dialog
+          setNewOrgName('');
+          setAdminName('');
+          setAdminEmail('');
+          setAdminPassword('');
+          setShowCreateDialog(false);
         }
       }
-      
-      setNewOrgName('');
-      setAdminName('');
-      setAdminEmail('');
-      setAdminPassword('');
-      setShowCreateDialog(false);
     } catch (error) {
-      console.error('Error creating organization:', error);
+      console.error('Error in organization creation process:', error);
       toast({
         title: "Error",
-        description: "Failed to create organization",
+        description: "Failed to create organization. Please try again.",
         variant: "destructive",
       });
     } finally {
