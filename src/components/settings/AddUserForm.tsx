@@ -10,10 +10,14 @@ import { Separator } from '@/components/ui/separator';
 import { useForm } from 'react-hook-form';
 import { User, useFirebaseUsers } from '@/hooks/useFirebaseUsers';
 import { useToast } from '@/hooks/use-toast';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface AddUserFormData {
   name: string;
   email: string;
+  password: string;
   role: 'Fleet Admin' | 'Fleet Manager' | 'Driver' | 'Viewer';
   status: 'active' | 'inactive';
 }
@@ -52,6 +56,7 @@ const roleDescriptions = {
 export function AddUserForm({ onClose }: AddUserFormProps) {
   const { addUser } = useFirebaseUsers();
   const { toast } = useToast();
+  const [showPassword, setShowPassword] = React.useState(false);
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<AddUserFormData>({
     defaultValues: {
       role: 'Viewer',
@@ -63,8 +68,15 @@ export function AddUserForm({ onClose }: AddUserFormProps) {
 
   const onSubmit = async (data: AddUserFormData) => {
     try {
+      // First create the Firebase Auth user
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      
+      // Then add the user to Firestore with the Firebase UID
       const userData: Omit<User, 'id' | 'createdAt'> = {
-        ...data,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        status: data.status,
         lastLogin: 'Never'
       };
       
@@ -72,14 +84,25 @@ export function AddUserForm({ onClose }: AddUserFormProps) {
       
       toast({
         title: "User Added Successfully",
-        description: `${data.name} has been added with ${data.role} role`,
+        description: `${data.name} has been added with ${data.role} role and can now login with the provided credentials`,
       });
       
       onClose();
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error creating user:', error);
+      let errorMessage = "Failed to add user. Please try again.";
+      
+      if (error.code === 'auth/email-already-in-use') {
+        errorMessage = "This email address is already registered.";
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = "Password should be at least 6 characters long.";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "Please enter a valid email address.";
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to add user. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -121,6 +144,42 @@ export function AddUserForm({ onClose }: AddUserFormProps) {
               className="mt-1"
             />
             {errors.email && <p className="text-sm text-red-600 mt-1">{errors.email.message}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="password">Password *</Label>
+            <div className="relative mt-1">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                {...register('password', { 
+                  required: 'Password is required',
+                  minLength: {
+                    value: 6,
+                    message: 'Password must be at least 6 characters long'
+                  }
+                })}
+                placeholder="Enter a secure password"
+                className="pr-10"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4 text-gray-400" />
+                ) : (
+                  <Eye className="h-4 w-4 text-gray-400" />
+                )}
+              </Button>
+            </div>
+            {errors.password && <p className="text-sm text-red-600 mt-1">{errors.password.message}</p>}
+            <p className="text-xs text-gray-500 mt-1">
+              User will use this password to login to the system
+            </p>
           </div>
         </div>
 

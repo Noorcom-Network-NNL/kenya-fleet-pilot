@@ -8,8 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/contexts/AuthContext';
 import { useOrganizations } from '@/hooks/useOrganizations';
 import { useFirebaseUsers } from '@/hooks/useFirebaseUsers';
-import { Loader2, Building } from 'lucide-react';
+import { Loader2, Building, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 export function OrganizationUserAuth() {
   const [email, setEmail] = useState('');
@@ -20,6 +21,7 @@ export function OrganizationUserAuth() {
   const { organizations } = useOrganizations();
   const { users } = useFirebaseUsers();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Get users for the selected organization
   const orgUsers = users.filter(user => user.organizationId === selectedOrgId);
@@ -28,11 +30,22 @@ export function OrganizationUserAuth() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password || !selectedOrgId) return;
+    if (!email || !password || !selectedOrgId) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
 
     // Check if user exists in the selected organization
     if (!selectedUser) {
-      alert('User not found in the selected organization');
+      toast({
+        title: "User Not Found",
+        description: "This email address is not registered with the selected organization. Please contact your administrator.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -42,6 +55,7 @@ export function OrganizationUserAuth() {
       navigate('/');
     } catch (error) {
       console.error('Login error:', error);
+      // Error is handled in AuthContext
     }
     setLoading(false);
   };
@@ -102,9 +116,10 @@ export function OrganizationUserAuth() {
               required
             />
             {selectedOrgId && email && !selectedUser && (
-              <p className="text-sm text-red-600">
-                This email is not registered with the selected organization
-              </p>
+              <div className="flex items-center gap-2 text-sm text-red-600">
+                <AlertCircle className="h-4 w-4" />
+                <span>This email is not registered with the selected organization</span>
+              </div>
             )}
             {selectedUser && (
               <p className="text-sm text-green-600">

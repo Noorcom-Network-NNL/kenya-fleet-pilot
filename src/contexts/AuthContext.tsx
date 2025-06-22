@@ -9,7 +9,6 @@ import {
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -29,6 +28,30 @@ export function useAuth() {
   return context;
 }
 
+// Helper function to get user-friendly error messages
+const getErrorMessage = (errorCode: string) => {
+  switch (errorCode) {
+    case 'auth/invalid-login-credentials':
+    case 'auth/wrong-password':
+    case 'auth/user-not-found':
+      return 'Invalid email or password. Please check your credentials and try again.';
+    case 'auth/invalid-email':
+      return 'Please enter a valid email address.';
+    case 'auth/too-many-requests':
+      return 'Too many failed login attempts. Please try again later.';
+    case 'auth/user-disabled':
+      return 'This account has been disabled. Please contact support.';
+    case 'auth/email-already-in-use':
+      return 'An account with this email already exists.';
+    case 'auth/weak-password':
+      return 'Password should be at least 6 characters long.';
+    case 'auth/network-request-failed':
+      return 'Network error. Please check your internet connection.';
+    default:
+      return 'An error occurred. Please try again.';
+  }
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,9 +67,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
     } catch (error: any) {
       console.error('Login error:', error);
+      const errorMessage = getErrorMessage(error.code);
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Login Failed",
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;
@@ -63,9 +87,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
     } catch (error: any) {
       console.error('Signup error:', error);
+      const errorMessage = getErrorMessage(error.code);
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Registration Failed",
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;
