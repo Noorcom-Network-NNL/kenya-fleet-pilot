@@ -8,11 +8,31 @@ import { AddFuelRecordForm } from "@/components/fuel/AddFuelRecordForm";
 import { FuelRecordsTable } from "@/components/fuel/FuelRecordsTable";
 import { FuelExport } from "@/components/fuel/FuelExport";
 import { useFirebaseFuel } from "@/hooks/useFirebaseFuel";
+import { useToast } from "@/hooks/use-toast";
 import { Fuel as FuelIcon, Plus, BarChart3 } from "lucide-react";
 
 const Fuel = () => {
-  const { fuelRecords, loading, error } = useFirebaseFuel();
+  const { fuelRecords, loading, error, deleteFuelRecord } = useFirebaseFuel();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
+
+  const handleDeleteFuelRecord = async (id: string, vehicleRegNumber: string) => {
+    if (window.confirm(`Are you sure you want to delete this fuel record for vehicle "${vehicleRegNumber}"? This action cannot be undone.`)) {
+      try {
+        await deleteFuelRecord(id);
+        toast({
+          title: "Fuel Record Deleted",
+          description: `Fuel record for ${vehicleRegNumber} has been deleted successfully.`,
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete fuel record. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
 
   return (
     <MainLayout title="Fuel Management">
@@ -95,7 +115,10 @@ const Fuel = () => {
               ) : error ? (
                 <div className="text-center py-8 text-red-600">{error}</div>
               ) : (
-                <FuelRecordsTable fuelRecords={fuelRecords} />
+                <FuelRecordsTable 
+                  fuelRecords={fuelRecords} 
+                  onDeleteRecord={handleDeleteFuelRecord}
+                />
               )}
             </CardContent>
           </Card>

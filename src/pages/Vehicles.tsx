@@ -11,11 +11,13 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Car, Plus, Search, Filter, Loader2, User, Calendar, Fuel, Settings } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Car, Plus, Search, Filter, Loader2, User, Calendar, Fuel, Settings, MoreVertical, Eye, Trash2 } from "lucide-react";
 import { useFirebaseVehicles, Vehicle } from "@/hooks/useFirebaseVehicles";
 import { AddVehicleForm } from "@/components/vehicles/AddVehicleForm";
 import { VehicleExport } from "@/components/vehicles/VehicleExport";
+import { useToast } from "@/hooks/use-toast";
 
 const getStatusBadge = (status: string) => {
   switch (status) {
@@ -120,7 +122,8 @@ const VehicleDetailsModal = ({ vehicle, isOpen, onClose }: { vehicle: Vehicle; i
 };
 
 const Vehicles = () => {
-  const { vehicles, loading, error } = useFirebaseVehicles();
+  const { vehicles, loading, error, deleteVehicle } = useFirebaseVehicles();
+  const { toast } = useToast();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
@@ -128,6 +131,24 @@ const Vehicles = () => {
   const handleViewVehicle = (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle);
     setIsViewDialogOpen(true);
+  };
+
+  const handleDeleteVehicle = async (id: string, regNumber: string) => {
+    if (window.confirm(`Are you sure you want to delete vehicle "${regNumber}"? This action cannot be undone.`)) {
+      try {
+        await deleteVehicle(id);
+        toast({
+          title: "Vehicle Deleted",
+          description: `Vehicle ${regNumber} has been deleted successfully.`,
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete vehicle. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   if (error) {
@@ -230,13 +251,26 @@ const Vehicles = () => {
                       {vehicle.nextService || "Not specified"}
                     </TableCell>
                     <TableCell>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleViewVehicle(vehicle)}
-                      >
-                        View
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleViewVehicle(vehicle)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleDeleteVehicle(vehicle.id!, vehicle.regNumber)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Vehicle
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}

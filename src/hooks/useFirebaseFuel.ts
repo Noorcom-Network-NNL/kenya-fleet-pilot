@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { 
   collection, 
@@ -152,6 +151,28 @@ export function useFirebaseFuel() {
     }
   };
 
+  // Delete a fuel record
+  const deleteFuelRecord = async (id: string) => {
+    console.log('=== STARTING deleteFuelRecord ===');
+    console.log('Record ID to delete:', id);
+    
+    try {
+      await deleteDoc(doc(db, 'fuel_records', id));
+      console.log('Fuel record deleted successfully');
+    } catch (err: any) {
+      console.error('=== ERROR IN deleteFuelRecord ===');
+      console.error('Error:', err);
+      
+      if (err.code === 'permission-denied') {
+        throw new Error('Permission denied. Please check your Firebase security rules.');
+      } else if (err.code === 'not-found') {
+        throw new Error('Fuel record not found.');
+      } else {
+        throw new Error(`Failed to delete fuel record: ${err.message || 'Unknown error'}`);
+      }
+    }
+  };
+
   // Get fuel records for a specific vehicle
   const getFuelRecordsByVehicle = (vehicleId: string) => {
     return fuelRecords.filter(record => record.vehicleId === vehicleId);
@@ -162,6 +183,7 @@ export function useFirebaseFuel() {
     loading,
     error,
     addFuelRecord,
+    deleteFuelRecord,
     getFuelRecordsByVehicle
   };
 }

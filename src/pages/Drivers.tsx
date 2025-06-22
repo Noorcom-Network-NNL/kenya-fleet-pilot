@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
@@ -15,10 +14,12 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Search, Filter, Loader2, Users, User, Phone, CreditCard, Calendar, Activity, Car } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Plus, Search, Filter, Loader2, Users, User, Phone, CreditCard, Calendar, Activity, Car, MoreVertical, Eye, Trash2 } from "lucide-react";
 import { useFirebaseDrivers, Driver } from "@/hooks/useFirebaseDrivers";
 import { AddDriverForm } from "@/components/drivers/AddDriverForm";
 import { DriverExport } from "@/components/drivers/DriverExport";
+import { useToast } from "@/hooks/use-toast";
 
 const getStatusBadge = (status: string) => {
   switch (status) {
@@ -47,7 +48,8 @@ const getPerformanceBadge = (performance: string) => {
 };
 
 const Drivers = () => {
-  const { drivers, loading, error } = useFirebaseDrivers();
+  const { drivers, loading, error, deleteDriver } = useFirebaseDrivers();
+  const { toast } = useToast();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
@@ -55,6 +57,24 @@ const Drivers = () => {
   const handleViewDriver = (driver: Driver) => {
     setSelectedDriver(driver);
     setIsViewDialogOpen(true);
+  };
+
+  const handleDeleteDriver = async (id: string, driverName: string) => {
+    if (window.confirm(`Are you sure you want to delete driver "${driverName}"? This action cannot be undone.`)) {
+      try {
+        await deleteDriver(id);
+        toast({
+          title: "Driver Deleted",
+          description: `Driver ${driverName} has been deleted successfully.`,
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete driver. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   if (error) {
@@ -157,9 +177,26 @@ const Drivers = () => {
                     <TableCell>{getPerformanceBadge(driver.performance)}</TableCell>
                     <TableCell>{driver.assignedVehicle || "-"}</TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm" onClick={() => handleViewDriver(driver)}>
-                        View
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleViewDriver(driver)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleDeleteDriver(driver.id!, driver.name)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Driver
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
