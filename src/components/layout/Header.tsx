@@ -3,7 +3,6 @@ import React from "react";
 import { Bell, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { OrganizationSelector } from "@/components/saas/OrganizationSelector";
 import { useCompanySettings } from "@/hooks/useCompanySettings";
 
 export function Header({ title }: { title: string }) {
@@ -16,7 +15,6 @@ export function Header({ title }: { title: string }) {
           <h1 className="text-2xl font-bold text-noorcom-800">{title}</h1>
           <p className="text-sm text-gray-600">{companySettings.companyName}</p>
         </div>
-        <OrganizationSelector />
       </div>
       
       <div className="flex items-center gap-4">
