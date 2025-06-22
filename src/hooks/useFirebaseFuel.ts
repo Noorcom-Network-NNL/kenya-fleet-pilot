@@ -84,19 +84,35 @@ export function useFirebaseFuel() {
     
     try {
       const now = new Date();
-      const recordWithTimestamps = {
-        ...record,
+      
+      // Clean the record to remove undefined values
+      const cleanRecord = {
+        vehicleId: record.vehicleId,
+        vehicleRegNumber: record.vehicleRegNumber,
+        driverId: record.driverId,
+        driverName: record.driverName,
+        fuelAmount: record.fuelAmount,
+        fuelCost: record.fuelCost,
+        pricePerLiter: record.pricePerLiter,
+        odometer: record.odometer,
+        fuelStation: record.fuelStation,
+        date: record.date,
         createdAt: now,
         updatedAt: now
       };
+
+      // Only add receiptNumber if it's not empty/undefined
+      if (record.receiptNumber && record.receiptNumber.trim() !== '') {
+        cleanRecord.receiptNumber = record.receiptNumber.trim();
+      }
       
-      console.log('Adding record with timestamps:', recordWithTimestamps);
+      console.log('Adding cleaned record:', cleanRecord);
       console.log('Collection path: fuel_records');
       
       const fuelRef = collection(db, 'fuel_records');
       console.log('Collection reference created:', fuelRef);
       
-      const docRef = await addDoc(fuelRef, recordWithTimestamps);
+      const docRef = await addDoc(fuelRef, cleanRecord);
       console.log('Document added successfully with ID:', docRef.id);
       console.log('=== addFuelRecord COMPLETED SUCCESSFULLY ===');
       

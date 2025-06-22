@@ -31,8 +31,6 @@ export function AddFuelRecordForm() {
     e.preventDefault();
     console.log('=== FUEL RECORD SUBMISSION STARTED ===');
     console.log('Form data:', formData);
-    console.log('Available vehicles:', vehicles.length);
-    console.log('Available drivers:', drivers.length);
     
     // Validation
     if (!formData.vehicleId || !formData.driverId) {
@@ -99,18 +97,11 @@ export function AddFuelRecordForm() {
       const selectedVehicle = vehicles.find(v => v.id === formData.vehicleId);
       const selectedDriver = drivers.find(d => d.id === formData.driverId);
 
-      console.log('Looking for vehicle with ID:', formData.vehicleId);
-      console.log('Looking for driver with ID:', formData.driverId);
-      console.log('Found vehicle:', selectedVehicle);
-      console.log('Found driver:', selectedDriver);
-
       if (!selectedVehicle) {
-        console.error('Vehicle not found with ID:', formData.vehicleId);
         throw new Error("Selected vehicle not found. Please refresh the page and try again.");
       }
 
       if (!selectedDriver) {
-        console.error('Driver not found with ID:', formData.driverId);
         throw new Error("Selected driver not found. Please refresh the page and try again.");
       }
 
@@ -125,7 +116,7 @@ export function AddFuelRecordForm() {
         pricePerLiter,
         odometer,
         fuelStation: formData.fuelStation.trim(),
-        receiptNumber: formData.receiptNumber?.trim() || undefined,
+        receiptNumber: formData.receiptNumber?.trim() || "",
         date: new Date(formData.date)
       };
 
@@ -159,7 +150,6 @@ export function AddFuelRecordForm() {
       console.error('Error type:', typeof error);
       console.error('Error message:', error?.message);
       console.error('Full error object:', error);
-      console.error('Error stack:', error?.stack);
       
       toast({
         title: "Error",
