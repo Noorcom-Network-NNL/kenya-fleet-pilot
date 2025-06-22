@@ -7,7 +7,6 @@ import { GeneralSettings } from "@/components/settings/GeneralSettings";
 import { NotificationSettings } from "@/components/settings/NotificationSettings";
 import { UserManagement } from "@/components/settings/UserManagement";
 import { IntegrationSettings } from "@/components/settings/IntegrationSettings";
-import { SubscriptionManagement } from "@/components/saas/SubscriptionManagement";
 
 const Settings = () => {
   return (
@@ -23,7 +22,6 @@ const Settings = () => {
               <TabsTrigger value="notifications">Notifications</TabsTrigger>
               <TabsTrigger value="users">Users</TabsTrigger>
               <TabsTrigger value="integrations">Integrations</TabsTrigger>
-              <TabsTrigger value="subscription">Subscription</TabsTrigger>
             </TabsList>
             <TabsContent value="general">
               <GeneralSettings />
@@ -36,9 +34,6 @@ const Settings = () => {
             </TabsContent>
             <TabsContent value="integrations">
               <IntegrationSettings />
-            </TabsContent>
-            <TabsContent value="subscription">
-              <SubscriptionManagement />
             </TabsContent>
           </Tabs>
         </CardContent>
