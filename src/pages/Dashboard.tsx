@@ -12,6 +12,16 @@ import { useFirebaseDrivers } from "@/hooks/useFirebaseDrivers";
 import { useFirebaseFuel } from "@/hooks/useFirebaseFuel";
 import { useFirebaseTrips } from "@/hooks/useFirebaseTrips";
 
+// Helper function to safely convert Firebase Timestamp to Date
+const safeToDate = (timestamp: any): Date => {
+  if (!timestamp) return new Date(0);
+  if (timestamp instanceof Date) return timestamp;
+  if (timestamp && typeof timestamp.toDate === 'function') return timestamp.toDate();
+  if (typeof timestamp === 'number') return new Date(timestamp);
+  if (typeof timestamp === 'string') return new Date(timestamp);
+  return new Date(0);
+};
+
 const Dashboard = () => {
   const { vehicles, loading: vehiclesLoading, error: vehiclesError } = useFirebaseVehicles();
   const { drivers, loading: driversLoading, error: driversError } = useFirebaseDrivers();
@@ -36,15 +46,11 @@ const Dashboard = () => {
 
   // Vehicle trend calculation
   const recentVehicles = vehicles.filter(v => {
-    const createdDate = v.createdAt instanceof Date ? v.createdAt : 
-                       v.createdAt?.toDate ? v.createdAt.toDate() : 
-                       new Date(v.createdAt || 0);
+    const createdDate = safeToDate(v.createdAt);
     return createdDate > thirtyDaysAgo;
   });
   const previousVehicles = vehicles.filter(v => {
-    const createdDate = v.createdAt instanceof Date ? v.createdAt : 
-                       v.createdAt?.toDate ? v.createdAt.toDate() : 
-                       new Date(v.createdAt || 0);
+    const createdDate = safeToDate(v.createdAt);
     return createdDate > sixtyDaysAgo && createdDate <= thirtyDaysAgo;
   });
   const vehicleTrend = previousVehicles.length > 0 ? 
@@ -53,24 +59,18 @@ const Dashboard = () => {
 
   // Driver trend calculation
   const recentActiveDrivers = drivers.filter(d => {
-    const updatedDate = d.updatedAt instanceof Date ? d.updatedAt : 
-                       d.updatedAt?.toDate ? d.updatedAt.toDate() : 
-                       new Date(d.updatedAt || 0);
+    const updatedDate = safeToDate(d.updatedAt);
     return d.status === 'active' && updatedDate > thirtyDaysAgo;
   });
   const driverTrend = recentActiveDrivers.length > 0 ? 12 : 0; // Default to 12% if we have active drivers
 
   // Fuel trend calculation
   const recentFuel = fuelRecords.filter(f => {
-    const fuelDate = f.date instanceof Date ? f.date : 
-                    f.date?.toDate ? f.date.toDate() : 
-                    new Date(f.date || 0);
+    const fuelDate = safeToDate(f.date);
     return fuelDate > thirtyDaysAgo;
   });
   const previousFuel = fuelRecords.filter(f => {
-    const fuelDate = f.date instanceof Date ? f.date : 
-                    f.date?.toDate ? f.date.toDate() : 
-                    new Date(f.date || 0);
+    const fuelDate = safeToDate(f.date);
     return fuelDate > sixtyDaysAgo && fuelDate <= thirtyDaysAgo;
   });
   const recentFuelAmount = recentFuel.reduce((sum, f) => sum + (f.fuelAmount || 0), 0);
@@ -81,9 +81,7 @@ const Dashboard = () => {
 
   // Distance trend calculation
   const recentTrips = tripRecords.filter(t => {
-    const tripDate = t.startTime instanceof Date ? t.startTime : 
-                    t.startTime?.toDate ? t.startTime.toDate() : 
-                    new Date(t.startTime || 0);
+    const tripDate = safeToDate(t.startTime);
     return tripDate > thirtyDaysAgo;
   });
   const recentDistance = recentTrips.reduce((sum, t) => sum + (t.distance || 0), 0);
