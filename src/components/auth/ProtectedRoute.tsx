@@ -14,13 +14,9 @@ const SUPER_ADMIN_EMAIL = 'admin@noorcomfleet.co.ke';
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { currentUser, loading: authLoading } = useAuth();
-  const { users, loading: usersLoading } = useFirebaseUsers();
-  const { currentOrganization, loading: orgLoading } = useOrganizations();
   const location = useLocation();
 
   console.log('ProtectedRoute - authLoading:', authLoading, 'currentUser:', currentUser);
-  console.log('ProtectedRoute - usersLoading:', usersLoading, 'users count:', users.length);
-  console.log('ProtectedRoute - orgLoading:', orgLoading, 'currentOrganization:', currentOrganization);
 
   if (authLoading) {
     return (
@@ -35,13 +31,26 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Check if user is the super admin
+  // Check if user is the super admin - grant immediate access
   if (currentUser.email === SUPER_ADMIN_EMAIL) {
     console.log('Super admin detected, granting access:', currentUser.email);
     return <>{children}</>;
   }
 
-  // Wait for users and organizations to load before making authorization decisions
+  // For non-super admin users, we need to check organization membership
+  return <OrganizationProtectedContent>{children}</OrganizationProtectedContent>;
+}
+
+// Separate component to handle organization-based protection
+function OrganizationProtectedContent({ children }: { children: React.ReactNode }) {
+  const { currentUser } = useAuth();
+  const { users, loading: usersLoading } = useFirebaseUsers();
+  const { currentOrganization, loading: orgLoading } = useOrganizations();
+
+  console.log('OrganizationProtectedContent - usersLoading:', usersLoading, 'users count:', users.length);
+  console.log('OrganizationProtectedContent - orgLoading:', orgLoading, 'currentOrganization:', currentOrganization);
+
+  // Wait for organizations and users to load
   if (usersLoading || orgLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -50,11 +59,17 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  // Check if user exists in any organization's user list
-  const authorizedUser = users.find(user => user.email === currentUser.email);
+  // If no organization is selected, redirect to login to select one
+  if (!currentOrganization) {
+    console.log('No organization selected, redirecting to login');
+    return <Navigate to="/login" replace />;
+  }
+
+  // Check if user exists in the current organization's user list
+  const authorizedUser = users.find(user => user.email === currentUser?.email);
   
   if (!authorizedUser) {
-    console.log('User not found in organization users, redirecting to login');
+    console.log('User not found in organization users, showing access denied');
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-6 text-center">
