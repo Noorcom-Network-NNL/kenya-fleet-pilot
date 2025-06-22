@@ -11,11 +11,19 @@ type StatCardProps = {
     positive: boolean;
   };
   className?: string;
+  onClick?: () => void;
 };
 
-export function StatCard({ title, value, icon, trend, className }: StatCardProps) {
+export function StatCard({ title, value, icon, trend, className, onClick }: StatCardProps) {
   return (
-    <div className={cn("bg-white rounded-lg shadow-sm p-6", className)}>
+    <div 
+      className={cn(
+        "bg-white rounded-lg shadow-sm p-6 transition-all duration-200",
+        onClick && "cursor-pointer hover:shadow-md hover:scale-[1.02]",
+        className
+      )}
+      onClick={onClick}
+    >
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-gray-500">{title}</p>

@@ -1,5 +1,6 @@
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { VehicleStatusChart } from "@/components/dashboard/VehicleStatusChart";
@@ -23,6 +24,7 @@ const safeToDate = (timestamp: any): Date => {
 };
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { vehicles, loading: vehiclesLoading, error: vehiclesError } = useFirebaseVehicles();
   const { drivers, loading: driversLoading, error: driversError } = useFirebaseDrivers();
   const { fuelRecords, loading: fuelLoading, error: fuelError } = useFirebaseFuel();
@@ -116,24 +118,28 @@ const Dashboard = () => {
           value={isLoading ? "..." : totalVehicles}
           icon={<Car className="h-6 w-6 text-noorcom-600" />}
           trend={{ value: Math.abs(vehicleTrend), positive: vehicleTrend >= 0 }}
+          onClick={() => navigate('/vehicles')}
         />
         <StatCard
           title="Active Drivers"
           value={isLoading ? "..." : activeDrivers}
           icon={<User className="h-6 w-6 text-noorcom-600" />}
           trend={{ value: driverTrend, positive: true }}
+          onClick={() => navigate('/drivers')}
         />
         <StatCard
           title="Fuel Used (L)"
           value={isLoading ? "..." : Math.round(totalFuelUsed).toLocaleString()}
           icon={<Fuel className="h-6 w-6 text-noorcom-600" />}
-          trend={{ value: Math.abs(fuelTrend), positive: fuelTrend <= 0 }} // Lower fuel usage is better
+          trend={{ value: Math.abs(fuelTrend), positive: fuelTrend <= 0 }}
+          onClick={() => navigate('/fuel')}
         />
         <StatCard
           title="KM Driven"
           value={isLoading ? "..." : Math.round(totalDistance).toLocaleString()}
           icon={<MapPin className="h-6 w-6 text-noorcom-600" />}
           trend={{ value: distanceTrend, positive: true }}
+          onClick={() => navigate('/tracking')}
         />
       </div>
 
