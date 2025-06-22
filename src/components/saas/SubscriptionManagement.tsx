@@ -53,7 +53,7 @@ const pricingPlans: PricingPlan[] = [
     description: 'For large organizations',
     features: ['Everything in Premium', 'Custom integrations', 'API access', 'Dedicated support', 'Custom reporting'],
     maxVehicles: -1,
-    maxUsers: -1,
+    maxUsers: 150,
     buttonText: 'Contact Sales',
     stripePriceId: 'price_enterprise_monthly'
   }

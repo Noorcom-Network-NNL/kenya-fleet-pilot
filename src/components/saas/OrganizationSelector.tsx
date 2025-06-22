@@ -17,7 +17,7 @@ const pricingPlans = [
   { id: 'free', name: 'Free Trial', maxVehicles: 5, maxUsers: 3 },
   { id: 'basic', name: 'Basic', maxVehicles: 25, maxUsers: 10 },
   { id: 'premium', name: 'Premium', maxVehicles: 100, maxUsers: 50 },
-  { id: 'enterprise', name: 'Enterprise', maxVehicles: -1, maxUsers: -1 }
+  { id: 'enterprise', name: 'Enterprise', maxVehicles: -1, maxUsers: 150 }
 ];
 
 export function OrganizationSelector() {
