@@ -1,4 +1,4 @@
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+
 
 Follow these steps:
 
@@ -15,6 +15,9 @@ npm i
 # Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
+🟦 Step 1.1: Upload the entire project
+Use PowerShell to copy the project folder to the server:
+scp -r C:\Users\Administrator\kenya-fleet-control root@64.227.154.203:/var/www/html/
 
 **Edit a file directly in GitHub**
 
