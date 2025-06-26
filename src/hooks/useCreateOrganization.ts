@@ -7,6 +7,8 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
+const SUPER_ADMIN_EMAIL = 'admin@noorcomfleet.co.ke';
+
 export function useCreateOrganization() {
   const [loading, setLoading] = useState(false);
   const { createOrganization } = useOrganizations();
@@ -32,8 +34,10 @@ export function useCreateOrganization() {
         features: ['basic_tracking', 'fuel_management']
       });
 
-      // Then create the Firebase Auth user
-      const userCredential = await createUserWithEmailAndPassword(auth, adminEmail, adminPassword);
+      // Create the Firebase Auth user (if not super admin)
+      if (adminEmail !== SUPER_ADMIN_EMAIL) {
+        await createUserWithEmailAndPassword(auth, adminEmail, adminPassword);
+      }
       
       // Add the admin user to the users collection
       await addDoc(collection(db, 'users'), {
@@ -45,6 +49,20 @@ export function useCreateOrganization() {
         organizationId: orgId,
         createdAt: new Date(),
       });
+
+      // If super admin is creating the org, also add them as a user to access it
+      if (adminEmail !== SUPER_ADMIN_EMAIL) {
+        // Add super admin as well so they can access the organization
+        await addDoc(collection(db, 'users'), {
+          name: 'Super Admin',
+          email: SUPER_ADMIN_EMAIL,
+          role: 'Fleet Admin' as const,
+          status: 'active' as const,
+          lastLogin: 'Never',
+          organizationId: orgId,
+          createdAt: new Date(),
+        });
+      }
 
       toast({
         title: "Organization Created Successfully",
