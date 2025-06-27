@@ -27,6 +27,8 @@ export const normalizeDate = (date: Date) => {
 
 // Export to CSV function
 export const exportToCSV = (filteredRecords: any[]) => {
+  console.log('Exporting CSV with records:', filteredRecords.length);
+  
   if (filteredRecords.length === 0) {
     alert('No records to export');
     return;
@@ -85,10 +87,14 @@ export const exportToCSV = (filteredRecords: any[]) => {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  
+  console.log('CSV export completed');
 };
 
 // Export to PDF function
 export const exportToPDF = (filteredRecords: any[], activeFilters: string[]) => {
+  console.log('Exporting PDF with records:', filteredRecords.length);
+  
   if (filteredRecords.length === 0) {
     alert('No records to export');
     return;
@@ -181,5 +187,8 @@ export const exportToPDF = (filteredRecords: any[], activeFilters: string[]) => 
     setTimeout(() => {
       printWindow.print();
     }, 500);
+    console.log('PDF export completed');
+  } else {
+    alert('Please allow popups to export PDF');
   }
 };

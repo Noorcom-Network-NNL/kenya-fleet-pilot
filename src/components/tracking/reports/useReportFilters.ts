@@ -21,32 +21,51 @@ export function useReportFilters(tripRecords: any[]) {
 
   // Filter trip records based on selected criteria
   const filteredRecords = useMemo(() => {
+    console.log('Filtering tripRecords:', tripRecords.length);
+    
     return tripRecords.filter(trip => {
       try {
-        const tripDate = getTripDate(trip);
-        const normalizedTripDate = normalizeDate(tripDate);
-        
-        // Date range filter
-        if (dateFrom) {
-          const normalizedFromDate = normalizeDate(dateFrom);
-          if (normalizedTripDate < normalizedFromDate) {
-            return false;
+        // Date range filter - only apply if dates are selected
+        if (dateFrom || dateTo) {
+          const tripDate = getTripDate(trip);
+          const normalizedTripDate = normalizeDate(tripDate);
+          
+          if (dateFrom) {
+            const normalizedFromDate = normalizeDate(dateFrom);
+            if (normalizedTripDate < normalizedFromDate) {
+              console.log('Trip filtered out by dateFrom:', trip.id);
+              return false;
+            }
           }
-        }
-        
-        if (dateTo) {
-          const normalizedToDate = normalizeDate(dateTo);
-          if (normalizedTripDate > normalizedToDate) {
-            return false;
+          
+          if (dateTo) {
+            const normalizedToDate = normalizeDate(dateTo);
+            if (normalizedTripDate > normalizedToDate) {
+              console.log('Trip filtered out by dateTo:', trip.id);
+              return false;
+            }
           }
         }
         
         // Other filters
-        if (selectedVehicle !== 'all' && trip.vehicleRegNumber !== selectedVehicle) return false;
-        if (selectedDriver !== 'all' && trip.driverName !== selectedDriver) return false;
-        if (selectedStatus !== 'all' && trip.status !== selectedStatus) return false;
-        if (selectedPurpose !== 'all' && trip.purpose !== selectedPurpose) return false;
+        if (selectedVehicle !== 'all' && trip.vehicleRegNumber !== selectedVehicle) {
+          console.log('Trip filtered out by vehicle:', trip.id);
+          return false;
+        }
+        if (selectedDriver !== 'all' && trip.driverName !== selectedDriver) {
+          console.log('Trip filtered out by driver:', trip.id);
+          return false;
+        }
+        if (selectedStatus !== 'all' && trip.status !== selectedStatus) {
+          console.log('Trip filtered out by status:', trip.id);
+          return false;
+        }
+        if (selectedPurpose !== 'all' && trip.purpose !== selectedPurpose) {
+          console.log('Trip filtered out by purpose:', trip.id);
+          return false;
+        }
         
+        console.log('Trip passed all filters:', trip.id);
         return true;
       } catch (error) {
         console.error('Error filtering trip:', trip.id, error);
@@ -65,6 +84,18 @@ export function useReportFilters(tripRecords: any[]) {
   };
 
   const hasActiveFilters = dateFrom || dateTo || selectedVehicle !== 'all' || selectedDriver !== 'all' || selectedStatus !== 'all' || selectedPurpose !== 'all';
+
+  console.log('Filter results:', {
+    totalRecords: tripRecords.length,
+    filteredRecords: filteredRecords.length,
+    hasActiveFilters,
+    dateFrom,
+    dateTo,
+    selectedVehicle,
+    selectedDriver,
+    selectedStatus,
+    selectedPurpose
+  });
 
   return {
     dateFrom,
