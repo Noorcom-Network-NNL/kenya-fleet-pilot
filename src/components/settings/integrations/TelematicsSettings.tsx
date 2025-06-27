@@ -7,8 +7,9 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Radio, Key, Shield } from 'lucide-react';
+import { Radio, Key, Shield, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { telematicsService } from '@/services/telematicsService';
 
 interface TelematicsSettingsProps {
   telematicsEnabled: boolean;
@@ -49,17 +50,46 @@ export function TelematicsSettings({
   };
 
   const testTelematicsConnection = async () => {
-    setIsConnecting(true);
-    try {
-      // This would typically test the actual API connection
+    if (!telematicsApiKey || !telematicsEndpoint) {
       toast({
-        title: "Connection Test",
-        description: `${telematicsProvider} telematics API connection test completed.`,
+        title: "Missing Configuration",
+        description: "Please provide both API key and endpoint before testing.",
+        variant: "destructive",
       });
+      return;
+    }
+
+    setIsConnecting(true);
+    
+    try {
+      // Configure the telematics service with current settings
+      telematicsService.configure({
+        provider: telematicsProvider as 'safaricom' | 'wialon',
+        apiKey: telematicsApiKey,
+        endpoint: telematicsEndpoint,
+        enabled: true
+      });
+
+      // Test the connection
+      const isConnected = await telematicsService.testConnection();
+      
+      if (isConnected) {
+        toast({
+          title: "Connection Successful",
+          description: `Successfully connected to ${telematicsProvider} telematics API.`,
+        });
+      } else {
+        toast({
+          title: "Connection Failed",
+          description: `Unable to connect to ${telematicsProvider} telematics API. Please check your credentials.`,
+          variant: "destructive",
+        });
+      }
     } catch (error) {
+      console.error('Connection test error:', error);
       toast({
-        title: "Connection Failed",
-        description: `Unable to connect to ${telematicsProvider} telematics API.`,
+        title: "Connection Error",
+        description: `Error testing connection: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
     } finally {
@@ -120,15 +150,28 @@ export function TelematicsSettings({
                 <Button 
                   variant="outline" 
                   onClick={testTelematicsConnection}
-                  disabled={isConnecting}
+                  disabled={isConnecting || !telematicsApiKey || !telematicsEndpoint}
+                  className="flex items-center gap-2"
                 >
-                  Test
+                  {isConnecting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+                      Testing
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4" />
+                      Test Connection
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="telematics-api-key">API Key / Token</Label>
+              <Label htmlFor="telematics-api-key">
+                {telematicsProvider === 'wialon' ? 'Access Token' : 'API Key'}
+              </Label>
               <div className="flex gap-2">
                 <Input 
                   id="telematics-api-key" 
@@ -136,7 +179,10 @@ export function TelematicsSettings({
                   value={telematicsApiKey}
                   onChange={(e) => setTelematicsApiKey(e.target.value)}
                   className="font-mono"
-                  placeholder="Enter API key or authentication token"
+                  placeholder={telematicsProvider === 'wialon' ? 
+                    "Enter Wialon access token" : 
+                    "Enter API key or authentication token"
+                  }
                 />
                 <Button variant="outline" size="icon">
                   <Key className="h-4 w-4" />
@@ -159,9 +205,15 @@ export function TelematicsSettings({
               <div className="bg-green-50 border border-green-200 rounded-md p-3">
                 <div className="flex items-center gap-2">
                   <Shield className="h-4 w-4 text-green-600" />
-                  <p className="text-sm text-green-800">
-                    <strong>Wialon Hosting:</strong> Requires Wialon account with API access enabled
-                  </p>
+                  <div className="text-sm text-green-800">
+                    <p className="font-semibold mb-1">Wialon Hosting Setup:</p>
+                    <ol className="list-decimal list-inside space-y-1">
+                      <li>Log into your Wialon account</li>
+                      <li>Go to User Settings → Access tokens</li>
+                      <li>Create a new token with required permissions</li>
+                      <li>Copy the token and paste it above</li>
+                    </ol>
+                  </div>
                 </div>
               </div>
             )}

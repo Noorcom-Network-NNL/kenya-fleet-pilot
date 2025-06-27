@@ -38,6 +38,11 @@ export interface SafaricomM2MResponse {
   };
 }
 
+export interface WialonLoginResponse {
+  eid: string;
+  error?: number;
+}
+
 export interface WialonResponse {
   items: Array<{
     id: string;
@@ -57,11 +62,63 @@ export interface WialonResponse {
 
 class TelematicsService {
   private config: TelematicsConfig | null = null;
+  private wialonSid: string | null = null;
 
   // Initialize with configuration
   configure(config: TelematicsConfig) {
     this.config = config;
     console.log('Telematics service configured for provider:', config.provider);
+    
+    // Clear existing session if switching providers
+    if (config.provider === 'wialon') {
+      this.wialonSid = null;
+    }
+  }
+
+  // Login to Wialon and get session ID
+  private async loginToWialon(): Promise<string> {
+    if (!this.config) throw new Error('Telematics service not configured');
+    
+    if (this.wialonSid) {
+      console.log('Using existing Wialon session');
+      return this.wialonSid;
+    }
+
+    const loginUrl = `${this.config.endpoint}/wialon/ajax.html`;
+    const loginParams = {
+      svc: 'token/login',
+      params: JSON.stringify({
+        token: this.config.apiKey
+      })
+    };
+
+    try {
+      console.log('Logging into Wialon...');
+      const response = await fetch(loginUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams(loginParams)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Wialon login failed: ${response.status}`);
+      }
+
+      const loginData: WialonLoginResponse = await response.json();
+      
+      if (loginData.error) {
+        throw new Error(`Wialon login error: ${loginData.error}`);
+      }
+
+      this.wialonSid = loginData.eid;
+      console.log('Wialon login successful, session ID:', this.wialonSid);
+      return this.wialonSid;
+    } catch (error) {
+      console.error('Wialon login failed:', error);
+      throw error;
+    }
   }
 
   // Get vehicle data from Safaricom M2M API
@@ -107,25 +164,29 @@ class TelematicsService {
   private async fetchFromWialon(vehicleIds?: string[]): Promise<VehicleData[]> {
     if (!this.config) throw new Error('Telematics service not configured');
 
-    const url = `${this.config.endpoint}/wialon/ajax.html`;
-    const params = {
-      svc: 'core/search_items',
-      params: JSON.stringify({
-        spec: {
-          itemsType: 'avl_unit',
-          propName: 'sys_name',
-          propValueMask: '*',
-          sortType: 'sys_name'
-        },
-        force: 1,
-        flags: 1025,
-        from: 0,
-        to: 0
-      }),
-      sid: this.config.apiKey
-    };
-
     try {
+      // First login to get session ID
+      const sid = await this.loginToWialon();
+
+      const url = `${this.config.endpoint}/wialon/ajax.html`;
+      const params = {
+        svc: 'core/search_items',
+        params: JSON.stringify({
+          spec: {
+            itemsType: 'avl_unit',
+            propName: 'sys_name',
+            propValueMask: '*',
+            sortType: 'sys_name'
+          },
+          force: 1,
+          flags: 1025,
+          from: 0,
+          to: 0
+        }),
+        sid: sid
+      };
+
+      console.log('Fetching vehicles from Wialon...');
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -139,18 +200,25 @@ class TelematicsService {
       }
 
       const data: WialonResponse = await response.json();
+      console.log('Wialon response:', data);
       
+      if (!data.items) {
+        console.log('No vehicles found in Wialon response');
+        return [];
+      }
+
       return data.items.map(item => ({
-        deviceId: item.id,
+        deviceId: item.id.toString(),
         vehicleId: item.nm,
         latitude: item.pos.y,
         longitude: item.pos.x,
-        speed: item.pos.s,
-        heading: item.pos.c,
-        timestamp: item.pos.t * 1000, // Wialon uses seconds
-        engineStatus: item.prms?.engine_hours ? true : false,
+        speed: item.pos.s || 0,
+        heading: item.pos.c || 0,
+        timestamp: (item.pos.t || Date.now() / 1000) * 1000, // Convert to milliseconds
+        engineStatus: item.prms?.engine_hours !== undefined,
         fuelLevel: item.prms?.fuel_level,
-        odometer: item.prms?.mileage
+        odometer: item.prms?.mileage,
+        temperature: item.prms?.temperature
       }));
     } catch (error) {
       console.error('Error fetching from Wialon:', error);
@@ -166,6 +234,7 @@ class TelematicsService {
     }
 
     try {
+      console.log(`Fetching vehicle data from ${this.config.provider}...`);
       switch (this.config.provider) {
         case 'safaricom':
           return await this.fetchFromSafaricom(vehicleIds);
@@ -187,8 +256,9 @@ class TelematicsService {
     }
 
     try {
+      console.log(`Testing ${this.config.provider} connection...`);
       const data = await this.getVehicleData();
-      console.log('Connection test successful, received data for', data.length, 'vehicles');
+      console.log(`Connection test successful, received data for ${data.length} vehicles`);
       return true;
     } catch (error) {
       console.error('Connection test failed:', error);
@@ -203,6 +273,33 @@ class TelematicsService {
       enabled: this.config?.enabled || false,
       configured: this.config !== null
     };
+  }
+
+  // Logout from Wialon
+  async logout(): Promise<void> {
+    if (this.config?.provider === 'wialon' && this.wialonSid) {
+      try {
+        const logoutUrl = `${this.config.endpoint}/wialon/ajax.html`;
+        const logoutParams = {
+          svc: 'core/logout',
+          sid: this.wialonSid
+        };
+
+        await fetch(logoutUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams(logoutParams)
+        });
+
+        console.log('Wialon logout successful');
+      } catch (error) {
+        console.error('Wialon logout failed:', error);
+      } finally {
+        this.wialonSid = null;
+      }
+    }
   }
 }
 
