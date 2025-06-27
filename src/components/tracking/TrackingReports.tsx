@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,10 +31,21 @@ export function TrackingReports({ tripRecords }: TrackingReportsProps) {
   const statuses = [...new Set(tripRecords.map(trip => trip.status))];
   const purposes = [...new Set(tripRecords.map(trip => trip.purpose))];
 
+  // Helper function to safely get date from trip
+  const getTripDate = (trip: any) => {
+    if (trip.startTime instanceof Date) {
+      return trip.startTime;
+    }
+    if (trip.startTime && typeof trip.startTime.toDate === 'function') {
+      return trip.startTime.toDate();
+    }
+    return new Date(trip.startTime);
+  };
+
   // Filter trip records based on selected criteria
   const getFilteredRecords = () => {
     return tripRecords.filter(trip => {
-      const tripDate = trip.startTime.toDate();
+      const tripDate = getTripDate(trip);
       
       // Date range filter
       if (dateFrom && tripDate < dateFrom) return false;
@@ -70,22 +82,27 @@ export function TrackingReports({ tripRecords }: TrackingReportsProps) {
       'Notes'
     ];
 
-    const csvData = filteredRecords.map(trip => [
-      `"${trip.vehicleRegNumber}"`,
-      `"${trip.driverName}"`,
-      `"${trip.startLocation}"`,
-      `"${trip.endLocation}"`,
-      `"${trip.purpose}"`,
-      `"${trip.status}"`,
-      `"${trip.startTime.toDate().toLocaleString()}"`,
-      `"${trip.endTime ? trip.endTime.toDate().toLocaleString() : 'Ongoing'}"`,
-      trip.startMileage || 0,
-      trip.endMileage || 0,
-      trip.distance || 0,
-      trip.fuelUsed || 0,
-      trip.fuelCost || 0,
-      `"${trip.notes || ''}"`
-    ]);
+    const csvData = filteredRecords.map(trip => {
+      const startTime = getTripDate(trip);
+      const endTime = trip.endTime ? (trip.endTime instanceof Date ? trip.endTime : trip.endTime.toDate()) : null;
+      
+      return [
+        `"${trip.vehicleRegNumber}"`,
+        `"${trip.driverName}"`,
+        `"${trip.startLocation}"`,
+        `"${trip.endLocation}"`,
+        `"${trip.purpose}"`,
+        `"${trip.status}"`,
+        `"${startTime.toLocaleString()}"`,
+        `"${endTime ? endTime.toLocaleString() : 'Ongoing'}"`,
+        trip.startMileage || 0,
+        trip.endMileage || 0,
+        trip.distance || 0,
+        trip.fuelUsed || 0,
+        trip.fuelCost || 0,
+        `"${trip.notes || ''}"`
+      ];
+    });
 
     const csvContent = [
       headers.join(','),
@@ -156,18 +173,21 @@ export function TrackingReports({ tripRecords }: TrackingReportsProps) {
               </tr>
             </thead>
             <tbody>
-              ${filteredRecords.map(trip => `
-                <tr>
-                  <td>${trip.vehicleRegNumber}</td>
-                  <td>${trip.driverName}</td>
-                  <td>${trip.startLocation} → ${trip.endLocation}</td>
-                  <td>${trip.purpose}</td>
-                  <td class="status-${trip.status}">${trip.status}</td>
-                  <td>${trip.startTime.toDate().toLocaleString()}</td>
-                  <td>${trip.distance || 0} km</td>
-                  <td>KES ${trip.fuelCost || 0}</td>
-                </tr>
-              `).join('')}
+              ${filteredRecords.map(trip => {
+                const startTime = getTripDate(trip);
+                return `
+                  <tr>
+                    <td>${trip.vehicleRegNumber}</td>
+                    <td>${trip.driverName}</td>
+                    <td>${trip.startLocation} → ${trip.endLocation}</td>
+                    <td>${trip.purpose}</td>
+                    <td class="status-${trip.status}">${trip.status}</td>
+                    <td>${startTime.toLocaleString()}</td>
+                    <td>${trip.distance || 0} km</td>
+                    <td>KES ${trip.fuelCost || 0}</td>
+                  </tr>
+                `;
+              }).join('')}
             </tbody>
           </table>
 
