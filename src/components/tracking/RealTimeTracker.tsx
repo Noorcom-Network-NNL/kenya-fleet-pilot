@@ -15,8 +15,8 @@ interface RealTimeTrackerProps {
 export function RealTimeTracker({ tripRecord, onClose }: RealTimeTrackerProps) {
   const [showPath, setShowPath] = useState(true);
   
-  // Use demo device ID for demonstration purposes
-  const demoDeviceId = 'FMB920_DEMO_001';
+  // Use actual vehicle ID from trip record for Wialon tracking
+  const vehicleDeviceId = tripRecord.vehicleId || tripRecord.vehicleRegNumber || 'FMB920_DEMO_001';
   
   const { 
     gpsData, 
@@ -26,7 +26,7 @@ export function RealTimeTracker({ tripRecord, onClose }: RealTimeTrackerProps) {
     error,
     startTracking,
     stopTracking 
-  } = useGPSTracking(demoDeviceId);
+  } = useGPSTracking(vehicleDeviceId);
 
   // Convert GPS data to map format
   const currentPosition = gpsData ? [gpsData.latitude, gpsData.longitude] as [number, number] : undefined;
@@ -36,12 +36,12 @@ export function RealTimeTracker({ tripRecord, onClose }: RealTimeTrackerProps) {
   }));
 
   const handleStartTracking = () => {
-    console.log('Starting GPS tracking for demo device:', demoDeviceId);
-    startTracking(demoDeviceId);
+    console.log('Starting live Wialon tracking for vehicle:', vehicleDeviceId);
+    startTracking(vehicleDeviceId);
   };
 
   const handleStopTracking = () => {
-    console.log('Stopping GPS tracking for demo device:', demoDeviceId);
+    console.log('Stopping live Wialon tracking for vehicle:', vehicleDeviceId);
     stopTracking();
   };
 
@@ -56,11 +56,11 @@ export function RealTimeTracker({ tripRecord, onClose }: RealTimeTrackerProps) {
 
   return (
     <div className="space-y-6">
-      <DemoNotice deviceId={demoDeviceId} />
+      <DemoNotice deviceId={vehicleDeviceId} />
 
       <TrackingHeader 
         tripRecord={tripRecord}
-        deviceId={demoDeviceId}
+        deviceId={vehicleDeviceId}
         isConnected={isConnected}
         isTracking={isTracking}
         onClose={onClose}
@@ -94,7 +94,7 @@ export function RealTimeTracker({ tripRecord, onClose }: RealTimeTrackerProps) {
             gpsData={gpsData}
             isTracking={isTracking}
             isConnected={isConnected}
-            deviceId={demoDeviceId}
+            deviceId={vehicleDeviceId}
             onStartTracking={handleStartTracking}
           />
 

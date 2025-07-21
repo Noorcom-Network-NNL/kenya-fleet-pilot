@@ -12,29 +12,68 @@ export function useGPSTracking(vehicleId?: string) {
   const [error, setError] = useState<string | null>(null);
 
   // Start tracking a specific vehicle
-  const startTracking = useCallback((deviceId: string) => {
+  const startTracking = useCallback(async (deviceId: string) => {
     try {
-      console.log('Starting tracking for device:', deviceId);
+      console.log('Starting live Wialon tracking for device:', deviceId);
       setIsTracking(true);
       setError(null);
       
-      // Subscribe to GPS updates for this device
-      gpsTrackingService.subscribeToDevice(deviceId, (data: GPSData) => {
-        console.log('Received GPS data in hook:', data);
-        setGpsData(data);
-        setPathHistory(prev => [...prev.slice(-50), data]); // Keep last 50 points
-      });
-
-      // For demo purposes, simulate GPS data if telematics is not configured
+      // Check if telematics (Wialon) is configured
       const telematicsStatus = telematicsService.getStatus();
-      if (!telematicsStatus.enabled || !telematicsStatus.configured) {
+      
+      if (telematicsStatus.enabled && telematicsStatus.configured) {
+        console.log('Using Wialon telematics for live tracking');
+        
+        // Subscribe to GPS updates for this device
+        gpsTrackingService.subscribeToDevice(deviceId, (data: GPSData) => {
+          console.log('Received live Wialon GPS data:', data);
+          setGpsData(data);
+          setPathHistory(prev => [...prev.slice(-50), data]); // Keep last 50 points
+          setIsConnected(true);
+        });
+
+        // Get initial position from Wialon
+        const vehicleData = await telematicsService.getVehicleData([deviceId]);
+        if (vehicleData.length > 0) {
+          const initialData = vehicleData[0];
+          const gpsData: GPSData = {
+            deviceId: initialData.deviceId,
+            timestamp: initialData.timestamp,
+            latitude: initialData.latitude,
+            longitude: initialData.longitude,
+            altitude: 0,
+            speed: initialData.speed,
+            heading: initialData.heading,
+            satellites: 8,
+            hdop: 1.0,
+            ignition: initialData.engineStatus,
+            voltage: 12.0,
+            fuelLevel: initialData.fuelLevel,
+            temperature: initialData.temperature
+          };
+          setGpsData(gpsData);
+          setPathHistory([gpsData]);
+          console.log('Set initial Wialon position:', gpsData);
+        }
+        
+      } else {
+        console.log('Wialon not configured, using demo simulation');
+        setError('Wialon integration not configured. Please configure it in Settings -> Integrations.');
+        
+        // Fallback to simulation for demo
+        gpsTrackingService.subscribeToDevice(deviceId, (data: GPSData) => {
+          console.log('Received demo GPS data:', data);
+          setGpsData(data);
+          setPathHistory(prev => [...prev.slice(-50), data]);
+        });
+        
         const cleanup = gpsTrackingService.simulateGPSData(deviceId);
         return cleanup;
       }
       
     } catch (err) {
       console.error('GPS tracking error:', err);
-      setError('Failed to start GPS tracking');
+      setError('Failed to start live tracking from Wialon');
       setIsTracking(false);
     }
   }, []);
