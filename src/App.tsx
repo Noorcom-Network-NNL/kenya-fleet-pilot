@@ -17,6 +17,8 @@ import Organizations from "./pages/Organizations";
 import Settings from "./pages/Settings";
 import Subscription from "./pages/Subscription";
 import Login from "./pages/Login";
+import SaasLanding from "./pages/SaasLanding";
+import SaasOnboarding from "./pages/SaasOnboarding";
 import InviteAccept from "./pages/InviteAccept";
 import NotFound from "./pages/NotFound";
 
@@ -28,6 +30,8 @@ const App = () => (
       <AuthProvider>
         <BrowserRouter>
           <Routes>
+            <Route path="/welcome" element={<SaasLanding />} />
+            <Route path="/onboarding" element={<SaasOnboarding />} />
             <Route path="/login" element={<Login />} />
             <Route path="/invite/:token" element={<InviteAccept />} />
             <Route path="/:orgSlug/login" element={<OrganizationLoginPage />} />

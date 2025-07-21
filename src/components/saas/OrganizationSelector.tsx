@@ -7,6 +7,7 @@ import { CreateOrganizationDialog } from './organization/CreateOrganizationDialo
 import { PlanManagementDialog } from './organization/PlanManagementDialog';
 import { OrganizationMetricsDialog } from './organization/OrganizationMetricsDialog';
 import { EditableClientDetailsDialog } from './organization/EditableClientDetailsDialog';
+import { QuickOrgSetup } from './QuickOrgSetup';
 import { pricingPlans } from './organization/constants';
 
 export function OrganizationSelector() {
@@ -112,10 +113,13 @@ export function OrganizationSelector() {
       {/* Organization Management Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Organization Management</h2>
-        <CreateOrganizationDialog
-          showCreateDialog={showCreateDialog}
-          setShowCreateDialog={setShowCreateDialog}
-        />
+        <div className="flex gap-2">
+          <QuickOrgSetup />
+          <CreateOrganizationDialog
+            showCreateDialog={showCreateDialog}
+            setShowCreateDialog={setShowCreateDialog}
+          />
+        </div>
       </div>
 
       {/* Organizations List */}
