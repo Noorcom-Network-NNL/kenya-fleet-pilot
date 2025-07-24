@@ -90,49 +90,51 @@ export function VehicleList({ vehicles, loading }: VehicleListProps) {
             No vehicles found. Add your first vehicle to get started.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left text-sm font-medium text-gray-500 pb-2">Reg. Number</th>
-                  <th className="text-left text-sm font-medium text-gray-500 pb-2">Driver</th>
-                  <th className="text-left text-sm font-medium text-gray-500 pb-2">Status</th>
-                  <th className="text-left text-sm font-medium text-gray-500 pb-2">Fuel</th>
-                  <th className="text-left text-sm font-medium text-gray-500 pb-2">Last Updated</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentVehicles.map((vehicle) => (
-                  <tr key={vehicle.id} className="border-b last:border-0">
-                    <td className="py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="bg-noorcom-100 rounded-md p-1">
-                          <Car className="h-4 w-4 text-noorcom-600" />
-                        </div>
-                        <span className="font-medium">{vehicle.regNumber}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 text-sm">{vehicle.driver}</td>
-                    <td className="py-3 text-sm">{getStatusBadge(vehicle.status)}</td>
-                    <td className="py-3">
-                      <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className={cn(
-                            "h-full rounded-full",
-                            vehicle.fuelLevel > 70 ? "bg-green-500" : 
-                            vehicle.fuelLevel > 30 ? "bg-amber-500" : "bg-red-500"
-                          )}
-                          style={{ width: `${vehicle.fuelLevel}%` }}
-                        ></div>
-                      </div>
-                    </td>
-                    <td className="py-3 text-sm text-gray-500">
-                      {formatFirebaseDate(vehicle.updatedAt)}
-                    </td>
+          <div className="overflow-x-auto -mx-2 sm:mx-0">
+            <div className="min-w-[600px] px-2 sm:px-0">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left text-xs sm:text-sm font-medium text-gray-500 pb-2 px-1">Reg. Number</th>
+                    <th className="text-left text-xs sm:text-sm font-medium text-gray-500 pb-2 px-1 hidden sm:table-cell">Driver</th>
+                    <th className="text-left text-xs sm:text-sm font-medium text-gray-500 pb-2 px-1">Status</th>
+                    <th className="text-left text-xs sm:text-sm font-medium text-gray-500 pb-2 px-1">Fuel</th>
+                    <th className="text-left text-xs sm:text-sm font-medium text-gray-500 pb-2 px-1 hidden md:table-cell">Last Updated</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {recentVehicles.map((vehicle) => (
+                    <tr key={vehicle.id} className="border-b last:border-0">
+                      <td className="py-2 sm:py-3 px-1">
+                        <div className="flex items-center gap-1 sm:gap-2">
+                          <div className="bg-noorcom-100 rounded-md p-1 flex-shrink-0">
+                            <Car className="h-3 w-3 sm:h-4 sm:w-4 text-noorcom-600" />
+                          </div>
+                          <span className="font-medium text-xs sm:text-sm truncate">{vehicle.regNumber}</span>
+                        </div>
+                      </td>
+                      <td className="py-2 sm:py-3 px-1 text-xs sm:text-sm hidden sm:table-cell">{vehicle.driver}</td>
+                      <td className="py-2 sm:py-3 px-1 text-xs sm:text-sm">{getStatusBadge(vehicle.status)}</td>
+                      <td className="py-2 sm:py-3 px-1">
+                        <div className="w-16 sm:w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className={cn(
+                              "h-full rounded-full",
+                              vehicle.fuelLevel > 70 ? "bg-green-500" : 
+                              vehicle.fuelLevel > 30 ? "bg-amber-500" : "bg-red-500"
+                            )}
+                            style={{ width: `${vehicle.fuelLevel}%` }}
+                          ></div>
+                        </div>
+                      </td>
+                      <td className="py-2 sm:py-3 px-1 text-xs sm:text-sm text-gray-500 hidden md:table-cell">
+                        {formatFirebaseDate(vehicle.updatedAt)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </CardContent>

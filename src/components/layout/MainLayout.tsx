@@ -15,10 +15,10 @@ export function MainLayout({ children, title }: MainLayoutProps) {
   return (
     <div className="flex min-h-screen bg-gray-50 w-full">
       <Sidebar />
-      <div className={`flex-1 flex flex-col min-w-0 ${isMobile ? 'ml-0' : 'ml-0'}`}>
+      <div className={`flex-1 flex flex-col min-w-0 ${isMobile ? 'w-full' : ''}`}>
         <Header title={title} />
-        <main className="flex-1 p-3 sm:p-6 overflow-auto">
-          <div className="max-w-full">
+        <main className="flex-1 p-2 sm:p-4 md:p-6 overflow-auto">
+          <div className="max-w-full w-full">
             {children}
           </div>
         </main>

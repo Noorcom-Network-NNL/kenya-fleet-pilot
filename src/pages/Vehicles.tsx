@@ -37,14 +37,14 @@ const getStatusBadge = (status: string) => {
 const VehicleDetailsModal = ({ vehicle, isOpen, onClose }: { vehicle: Vehicle; isOpen: boolean; onClose: () => void }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Car className="h-5 w-5" />
-            Vehicle Details - {vehicle.regNumber}
+          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Car className="h-4 w-4 sm:h-5 sm:w-5" />
+            <span className="truncate">Vehicle Details - {vehicle.regNumber}</span>
           </DialogTitle>
         </DialogHeader>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mt-4">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <Car className="h-5 w-5 text-gray-500" />
@@ -166,38 +166,41 @@ const Vehicles = () => {
 
   return (
     <MainLayout title="Vehicle Management">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-lg font-medium">All Vehicles</h2>
-          <p className="text-sm text-gray-500">Manage and monitor your fleet vehicles</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+        <div className="min-w-0">
+          <h2 className="text-lg sm:text-xl font-medium truncate">All Vehicles</h2>
+          <p className="text-sm text-gray-500 hidden sm:block">Manage and monitor your fleet vehicles</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           <VehicleExport vehicles={vehicles} />
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" /> Add Vehicle
+              <Button className="text-sm">
+                <Plus className="mr-1 sm:mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Add Vehicle</span>
+                <span className="sm:hidden">Add</span>
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
               <AddVehicleForm onSuccess={() => setIsAddDialogOpen(false)} />
             </DialogContent>
           </Dialog>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm mb-6">
-        <div className="p-4 border-b flex flex-col sm:flex-row justify-between gap-4">
-          <div className="relative max-w-md w-full">
+      <div className="bg-white rounded-lg shadow-sm mb-4 sm:mb-6">
+        <div className="p-3 sm:p-4 border-b flex flex-col sm:flex-row justify-between gap-3 sm:gap-4">
+          <div className="relative max-w-full sm:max-w-md w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input 
               type="text"
               placeholder="Search vehicles..." 
-              className="pl-10 bg-gray-50 border-gray-200"
+              className="pl-10 bg-gray-50 border-gray-200 text-sm sm:text-base"
             />
           </div>
-          <Button variant="outline" className="flex items-center gap-2">
-            <Filter className="h-4 w-4" /> Filter
+          <Button variant="outline" className="flex items-center gap-2 text-sm sm:text-base flex-shrink-0">
+            <Filter className="h-4 w-4" />
+            <span className="hidden sm:inline">Filter</span>
           </Button>
         </div>
 
@@ -215,67 +218,69 @@ const Vehicles = () => {
             </div>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Registration</TableHead>
-                  <TableHead>Make & Model</TableHead>
-                  <TableHead>Year</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Driver</TableHead>
-                  <TableHead>Insurance</TableHead>
-                  <TableHead>Next Service</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {vehicles.map((vehicle) => (
-                  <TableRow key={vehicle.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <div className="bg-noorcom-100 rounded-md p-1">
-                          <Car className="h-4 w-4 text-noorcom-600" />
-                        </div>
-                        {vehicle.regNumber}
-                      </div>
-                    </TableCell>
-                    <TableCell>{vehicle.make} {vehicle.model}</TableCell>
-                    <TableCell>{vehicle.year}</TableCell>
-                    <TableCell>{getStatusBadge(vehicle.status)}</TableCell>
-                    <TableCell>{vehicle.driver}</TableCell>
-                    <TableCell className={vehicle.insurance?.includes("Expired") ? "text-red-600" : ""}>
-                      {vehicle.insurance || "Not specified"}
-                    </TableCell>
-                    <TableCell className={vehicle.nextService?.includes("Due") ? "text-red-600" : ""}>
-                      {vehicle.nextService || "Not specified"}
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleViewVehicle(vehicle)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleDeleteVehicle(vehicle.id!, vehicle.regNumber)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete Vehicle
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+          <div className="overflow-x-auto -mx-3 sm:mx-0">
+            <div className="min-w-[800px] px-3 sm:px-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs sm:text-sm">Registration</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden md:table-cell">Make & Model</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden lg:table-cell">Year</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Status</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Driver</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden xl:table-cell">Insurance</TableHead>
+                    <TableHead className="text-xs sm:text-sm hidden xl:table-cell">Next Service</TableHead>
+                    <TableHead className="text-xs sm:text-sm">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {vehicles.map((vehicle) => (
+                    <TableRow key={vehicle.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-1 sm:gap-2">
+                          <div className="bg-noorcom-100 rounded-md p-1 flex-shrink-0">
+                            <Car className="h-3 w-3 sm:h-4 sm:w-4 text-noorcom-600" />
+                          </div>
+                          <span className="text-xs sm:text-sm truncate">{vehicle.regNumber}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-xs sm:text-sm hidden md:table-cell">{vehicle.make} {vehicle.model}</TableCell>
+                      <TableCell className="text-xs sm:text-sm hidden lg:table-cell">{vehicle.year}</TableCell>
+                      <TableCell className="text-xs sm:text-sm">{getStatusBadge(vehicle.status)}</TableCell>
+                      <TableCell className="text-xs sm:text-sm hidden sm:table-cell truncate">{vehicle.driver}</TableCell>
+                      <TableCell className={`text-xs sm:text-sm hidden xl:table-cell truncate ${vehicle.insurance?.includes("Expired") ? "text-red-600" : ""}`}>
+                        {vehicle.insurance || "Not specified"}
+                      </TableCell>
+                      <TableCell className={`text-xs sm:text-sm hidden xl:table-cell truncate ${vehicle.nextService?.includes("Due") ? "text-red-600" : ""}`}>
+                        {vehicle.nextService || "Not specified"}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <MoreVertical className="h-3 w-3 sm:h-4 sm:w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="text-xs sm:text-sm">
+                            <DropdownMenuItem onClick={() => handleViewVehicle(vehicle)}>
+                              <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteVehicle(vehicle.id!, vehicle.regNumber)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+                              Delete Vehicle
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         )}
       </div>
