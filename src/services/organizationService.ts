@@ -1,5 +1,5 @@
 
-import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Organization, CreateOrganizationData } from '@/types/organization';
 
@@ -16,6 +16,7 @@ export class OrganizationService {
       ownerEmail: userEmail,
       createdAt: new Date(),
       trialEndsAt,
+      slug: orgData.slug, // Ensure slug is saved
     });
     
     console.log('Organization created successfully with ID:', docRef.id);
@@ -30,6 +31,29 @@ export class OrganizationService {
     await deleteDoc(doc(db, 'organizations', id));
   }
 
+  static async getOrganizationBySlug(slug: string): Promise<Organization | null> {
+    try {
+      const q = query(collection(db, 'organizations'), where('slug', '==', slug));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        return null;
+      }
+      
+      const doc = querySnapshot.docs[0];
+      return {
+        id: doc.id,
+        ...doc.data(),
+        createdAt: doc.data().createdAt?.toDate() || new Date(),
+        trialEndsAt: doc.data().trialEndsAt?.toDate(),
+        subscriptionEndsAt: doc.data().subscriptionEndsAt?.toDate(),
+      } as Organization;
+    } catch (error) {
+      console.error('Error fetching organization by slug:', error);
+      return null;
+    }
+  }
+
   static subscribeToUserOrganizations(
     userId: string,
     onSnapshotCallback: (organizations: Organization[]) => void,
@@ -37,11 +61,13 @@ export class OrganizationService {
   ): () => void {
     console.log('Setting up Firestore listener for user:', userId);
     
-    // Use simpler query without orderBy to avoid composite index requirement
-    const q = query(
-      collection(db, 'organizations'), 
-      where('ownerId', '==', userId)
-    );
+    // For super admin, get all organizations; for regular users, filter by ownerId
+    const q = userId === 'super-admin' ? 
+      collection(db, 'organizations') :
+      query(
+        collection(db, 'organizations'), 
+        where('ownerId', '==', userId)
+      );
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
       console.log('Firestore snapshot received, docs count:', snapshot.docs.length);

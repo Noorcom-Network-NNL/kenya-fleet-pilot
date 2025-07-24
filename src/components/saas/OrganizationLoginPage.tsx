@@ -2,22 +2,35 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { OrganizationUserAuth } from './OrganizationUserAuth';
-import { useOrganizations } from '@/hooks/useOrganizations';
 import { useOrganizationCustomization } from '@/hooks/useOrganizationCustomization';
+import { OrganizationService } from '@/services/organizationService';
+import { Organization } from '@/types/organization';
 import { Loader2 } from 'lucide-react';
 
 export function OrganizationLoginPage() {
   const { orgSlug } = useParams<{ orgSlug: string }>();
-  const { organizations, loading } = useOrganizations();
-  const [targetOrganization, setTargetOrganization] = useState(null);
+  const [targetOrganization, setTargetOrganization] = useState<Organization | null>(null);
+  const [loading, setLoading] = useState(true);
   const { customization } = useOrganizationCustomization(targetOrganization?.id);
 
   useEffect(() => {
-    if (!loading && organizations.length > 0 && orgSlug) {
-      const org = organizations.find(o => o.slug === orgSlug);
-      setTargetOrganization(org);
-    }
-  }, [organizations, loading, orgSlug]);
+    const fetchOrganization = async () => {
+      if (orgSlug) {
+        setLoading(true);
+        try {
+          const org = await OrganizationService.getOrganizationBySlug(orgSlug);
+          setTargetOrganization(org);
+        } catch (error) {
+          console.error('Error fetching organization:', error);
+          setTargetOrganization(null);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchOrganization();
+  }, [orgSlug]);
 
   if (loading) {
     return (
