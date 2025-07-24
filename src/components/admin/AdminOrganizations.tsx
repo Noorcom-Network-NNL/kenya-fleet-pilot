@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CreateOrganizationDialog } from '@/components/admin/CreateOrganizationDialog';
 import { OrganizationDetailsDialog } from '@/components/admin/OrganizationDetailsDialog';
-import { OrganizationBrandingDialog } from '@/components/saas/organization/OrganizationBrandingDialog';
+import { AdminBrandingDialog } from '@/components/admin/AdminBrandingDialog';
 
 interface Organization {
   id: string;
@@ -275,14 +275,12 @@ export function AdminOrganizations() {
         onOpenChange={setShowDetailsDialog}
       />
 
-      {selectedOrg && (
-        <OrganizationBrandingDialog
-          organization={selectedOrg}
-          open={showBrandingDialog}
-          onOpenChange={setShowBrandingDialog}
-          onSuccess={loadOrganizations}
-        />
-      )}
+      <AdminBrandingDialog
+        organization={selectedOrg}
+        open={showBrandingDialog}
+        onOpenChange={setShowBrandingDialog}
+        onSuccess={loadOrganizations}
+      />
     </div>
   );
 }

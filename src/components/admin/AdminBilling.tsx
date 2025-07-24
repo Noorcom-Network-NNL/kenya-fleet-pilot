@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ManualPaymentValidation } from '@/components/admin/ManualPaymentValidation';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -187,6 +187,18 @@ export function AdminBilling() {
         </Button>
       </div>
 
+      <Tabs defaultValue="validation" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="validation">Payment Validation</TabsTrigger>
+          <TabsTrigger value="events">Billing Events</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="validation">
+          <ManualPaymentValidation />
+        </TabsContent>
+
+        <TabsContent value="events" className="space-y-6">
+
       {/* Revenue Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
@@ -315,6 +327,8 @@ export function AdminBilling() {
           </div>
         </CardContent>
       </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
