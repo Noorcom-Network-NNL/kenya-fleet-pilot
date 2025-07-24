@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { OrganizationLoginPage } from "@/components/saas/OrganizationLoginPage";
+import { OrganizationRedirect } from "@/components/saas/OrganizationRedirect";
 import Dashboard from "./pages/Dashboard";
 import Vehicles from "./pages/Vehicles";
 import Drivers from "./pages/Drivers";
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/invite/:token" element={<InviteAccept />} />
             <Route path="/:orgSlug/login" element={<OrganizationLoginPage />} />
+            <Route path="/:orgSlug" element={<OrganizationRedirect />} />
             <Route path="/" element={
               <ProtectedRoute>
                 <Dashboard />
