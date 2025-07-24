@@ -14,6 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          email: string
+          id: string
+          permissions: string[] | null
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          email: string
+          id?: string
+          permissions?: string[] | null
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          email?: string
+          id?: string
+          permissions?: string[] | null
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      billing_events: {
+        Row: {
+          amount: number | null
+          created_at: string
+          currency: string | null
+          description: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          organization_id: string
+          stripe_event_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          organization_id: string
+          stripe_event_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          organization_id?: string
+          stripe_event_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drivers: {
         Row: {
           assigned_vehicle: string | null
@@ -215,54 +292,131 @@ export type Database = {
           },
         ]
       }
+      organization_metrics: {
+        Row: {
+          active_users: number | null
+          api_calls: number | null
+          created_at: string
+          fuel_records_count: number | null
+          id: string
+          maintenance_records_count: number | null
+          metric_date: string
+          organization_id: string
+          storage_used_mb: number | null
+          total_drivers: number | null
+          total_vehicles: number | null
+          trip_records_count: number | null
+        }
+        Insert: {
+          active_users?: number | null
+          api_calls?: number | null
+          created_at?: string
+          fuel_records_count?: number | null
+          id?: string
+          maintenance_records_count?: number | null
+          metric_date?: string
+          organization_id: string
+          storage_used_mb?: number | null
+          total_drivers?: number | null
+          total_vehicles?: number | null
+          trip_records_count?: number | null
+        }
+        Update: {
+          active_users?: number | null
+          api_calls?: number | null
+          created_at?: string
+          fuel_records_count?: number | null
+          id?: string
+          maintenance_records_count?: number | null
+          metric_date?: string
+          organization_id?: string
+          storage_used_mb?: number | null
+          total_drivers?: number | null
+          total_vehicles?: number | null
+          trip_records_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_metrics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
+          accent_color: string | null
           created_at: string
+          custom_css: string | null
+          custom_domain: string | null
+          favicon_url: string | null
           features: string[] | null
           id: string
+          logo_url: string | null
           max_users: number
           max_vehicles: number
           name: string
           owner_email: string
           owner_id: string
+          primary_color: string | null
+          secondary_color: string | null
           slug: string
           subscription_ends_at: string | null
           subscription_status: Database["public"]["Enums"]["subscription_status"]
           subscription_tier: Database["public"]["Enums"]["subscription_tier"]
           trial_ends_at: string | null
           updated_at: string
+          white_label_enabled: boolean | null
         }
         Insert: {
+          accent_color?: string | null
           created_at?: string
+          custom_css?: string | null
+          custom_domain?: string | null
+          favicon_url?: string | null
           features?: string[] | null
           id?: string
+          logo_url?: string | null
           max_users?: number
           max_vehicles?: number
           name: string
           owner_email: string
           owner_id: string
+          primary_color?: string | null
+          secondary_color?: string | null
           slug: string
           subscription_ends_at?: string | null
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           trial_ends_at?: string | null
           updated_at?: string
+          white_label_enabled?: boolean | null
         }
         Update: {
+          accent_color?: string | null
           created_at?: string
+          custom_css?: string | null
+          custom_domain?: string | null
+          favicon_url?: string | null
           features?: string[] | null
           id?: string
+          logo_url?: string | null
           max_users?: number
           max_vehicles?: number
           name?: string
           owner_email?: string
           owner_id?: string
+          primary_color?: string | null
+          secondary_color?: string | null
           slug?: string
           subscription_ends_at?: string | null
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           trial_ends_at?: string | null
           updated_at?: string
+          white_label_enabled?: boolean | null
         }
         Relationships: []
       }
@@ -473,8 +627,16 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_organization_owner: {
         Args: { org_id: string }
+        Returns: boolean
+      }
+      is_super_admin: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
     }
