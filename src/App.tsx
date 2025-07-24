@@ -22,6 +22,7 @@ import SaasLanding from "./pages/SaasLanding";
 import SaasOnboarding from "./pages/SaasOnboarding";
 import InviteAccept from "./pages/InviteAccept";
 import NotFound from "./pages/NotFound";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +83,7 @@ const App = () => (
                 <Subscription />
               </ProtectedRoute>
             } />
+            <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

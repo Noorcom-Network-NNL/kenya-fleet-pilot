@@ -6,15 +6,17 @@ import { AdminOrganizations } from '@/components/admin/AdminOrganizations';
 import { AdminUsers } from '@/components/admin/AdminUsers';
 import { AdminBilling } from '@/components/admin/AdminBilling';
 import { AdminSettings } from '@/components/admin/AdminSettings';
+import { usePermissions } from '@/hooks/usePermissions';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
 
 export default function Admin() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const { isAdmin, isLoading, user } = useAdminAuth();
+  const { isAnyAdmin, loading } = usePermissions();
+  const { user } = useAdminAuth();
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -22,7 +24,7 @@ export default function Admin() {
     );
   }
 
-  if (!isAdmin) {
+  if (!isAnyAdmin()) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
